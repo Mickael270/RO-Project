@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ordonnancement tableau</title>
+
+<style>
+table {
+    border-collapse: collapse;
+    width: 60%;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+.block {
+    display: inline-block;
+    margin: 10px;
+}
+
+.block table {
+    border-collapse: collapse;
+}
+
+.block td {
+    border: 1px solid black;
+    padding: 6px 10px;
+    text-align: center;
+}
+
+.top-row {
+    border-bottom: 1px solid black;
+}
+
+.split {
+    border-left: 1px solid black;
+}
+.critical-bold {
+    color: red;
+    font-weight: bold;
+}
+.latest-bold {
+    color: blue;
+    font-weight: bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Ordonnancement tableau</h1>
+
+<!-- ================= AJOUT ================= -->
+<h2>Ajouter une tâche</h2>
+
+<input id="id" placeholder="ID">
+<input id="nom" placeholder="Nom">
+<input id="duree" placeholder="Durée">
+<input id="dependances" placeholder="Tâches antérieures (ex: A,B)">
+<button onclick="addTask()">Ajouter</button>
+
+<!-- ================= LISTE ================= -->
+<h2>Liste des tâches</h2>
+
+<button onclick="loadTasks()">Afficher les tâches</button>
+
+<div id="table-container" style="display:none;">
+<table>
+    <thead>
+        <tr>
+            <th>Tâche</th>
+            <th>Durée</th>
+            <th>Tâche antérieure</th>
+            <th>Tâche successeur</th>
+        </tr>
+    </thead>
+    <tbody id="tasks"></tbody>
+</table>
+</div>
+
+<!-- ================= DATES AU PLUS TOT ================= -->
+<h2>Dates au plus tôt</h2>
+
+<button onclick="generateOrdonnancement()">Afficher dates au plus tôt</button>
+
+<div id="ordonnancement"></div>
+
+<!-- ================= CRITIQUE ================= -->
+<h2>Chemin critique</h2>
+
+<button onclick="showCriticalPath()">Afficher le chemin critique</button>
+
+<div id="critical"></div>
+
+<!-- ================= DATE AU PLUS TARD ================= -->
+<h2>Dates au plus tard</h2>
+
+<button onclick="showLatestDates()">Afficher dates au plus tard</button>
+
+<div id="latest"></div>
+
+<script>
+
+const API = "http://127.0.0.1:8000"
+
+// ================= ADD =================
+async function addTask(){
+
+    const depInput = document.getElementById("dependances").value
+        .split(",")
+        .map(x => x.trim())
+        .filter(x => x !== "")
+
+    const res = await fetch(API + "/tasks")
+    const existingTasks = await res.json()
+
+    const dependances = depInput.map(letter => {
+        const found = existingTasks.find(t => t.nom === letter)
+        return found ? found.id : null
+    }).filter(x => x !== null)
+
+    const task = {
+        id: parseInt(document.getElementById("id").value),
+        nom: document.getElementById("nom").value,
+        duree: parseInt(document.getElementById("duree").value),
+        date_plus_tot: 0,
+        date_plus_tard: 0,
+        marge: 0,
+        dependances: dependances
+    }
+
+    await fetch(API + "/tasks",{
+        method:"POST",
+        body:JSON.stringify(task),
+        headers:{
+            "Content-Type":"application/json"
+        }
+    })
+    await loadTasks()
+}
+
+// ================= LISTE =================
+async function loadTasks(){
+
+    document.getElementById("table-container").style.display = "block"
+
+
+
+    const res = await fetch(API + "/tasks")
+    const data = await res.json()
+
+    const tbody = document.getElementById("tasks")
+    tbody.innerHTML = ""
+
+    // 🔥 Construire les successeurs
+    let successorsMap = {}
+
+    data.forEach(task => {
+        successorsMap[task.nom] = []
+    })
+
+    data.forEach(task => {
+        task.dependances.forEach(dep => {
+            const parent = data.find(t => t.id === dep)
+            if(parent){
+                successorsMap[parent.nom].push(task.nom)
+            }
+        })
+    })
+
+    // 🔥 Affichage
+    data.forEach(task => {
+
+        let anterieurs = []
+
+        task.dependances.forEach(dep => {
+            const parent = data.find(t => t.id === dep)
+            if(parent){
+                anterieurs.push(parent.nom)
+            }
+        })
+
+       let successeurs = successorsMap[task.nom]
+
+// 🔥 SI aucun successeur → FIN
+       let succText = (successeurs.length === 0) ? "FIN" : successeurs.join(", ")
+
+        const row = document.createElement("tr")
+
+        row.innerHTML = `
+            <td>${task.nom}</td>
+            <td>${task.duree}</td>
+            <td>${anterieurs.join(", ") || "-"}</td>
+            <td>${succText}</td>
+        `
+
+        tbody.appendChild(row)
+    })
+}
+
+// ================= 🔥 DATES =================
+async function generateOrdonnancement(){
+
+    await fetch(API + "/schedule/earliest")
+
+    const res = await fetch(API + "/tasks")
+    const tasks = await res.json()
+
+    const container = document.getElementById("ordonnancement")
+    container.innerHTML = ""
+
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+
+    tasks.forEach(task => {
+
+        const block = document.createElement("div")
+        block.className = "block"
+
+        let html = `<table>`
+
+        html += `
+            <tr class="top-row">
+                <td colspan="2">
+                    <span style="color:red">${task.date_plus_tot}</span>
+                    &nbsp; ${task.nom}
+                </td>
+            </tr>
+        `
+
+        if(task.dependances.length === 0){
+            html += `
+                <tr>
+                    <td style="color:red">0</td>
+                    <td class="split">DEBUT 0</td>
+                </tr>
+            `
+        } else {
+
+            task.dependances.forEach(dep => {
+
+                const parent = tasks.find(t => t.id === dep)
+
+                if(parent){
+                    html += `
+                        <tr>
+                            <td style="color:red">${parent.date_plus_tot}</td>
+                            <td class="split">${parent.nom} ${parent.duree}</td>
+                        </tr>
+                    `
+                }
+            })
+        }
+
+        html += `</table>`
+
+        block.innerHTML = html
+        container.appendChild(block)
+    })
+
+    // ===== FIN =====
+    const endBlock = document.createElement("div")
+    endBlock.className = "block"
+
+    let endHTML = `<table>`
+
+    let maxEnd = 0
+
+    lastTasks.forEach(t => {
+        const val = t.date_plus_tot + t.duree
+        if(val > maxEnd){
+            maxEnd = val
+        }
+    })
+
+    endHTML += `
+        <tr class="top-row">
+            <td colspan="2">
+                <span style="color:red">${maxEnd}</span> FIN
+            </td>
+        </tr>
+    `
+
+    lastTasks.forEach(t => {
+        endHTML += `
+            <tr>
+                <td style="color:red">${t.date_plus_tot}</td>
+                <td class="split">${t.nom} ${t.duree}</td>
+            </tr>
+        `
+    })
+
+    endHTML += `</table>`
+
+    endBlock.innerHTML = endHTML
+    container.appendChild(endBlock)
+}
+
+// ================= 🔥 CHEMIN CRITIQUE =================
+function getCriticalParents(tasks){
+
+    const map = {}
+
+    tasks.forEach(task => {
+
+        if(task.dependances.length === 0){
+            map[task.nom] = "DEBUT"
+        } else {
+
+            let maxVal = -1
+            let bestParent = null
+
+            task.dependances.forEach(dep => {
+
+                const parent = tasks.find(t => t.id === dep)
+
+                if(parent){
+                    const val = parent.date_plus_tot + parent.duree
+
+                    if(val > maxVal){
+                        maxVal = val
+                        bestParent = parent.nom
+                    }
+                }
+            })
+
+            map[task.nom] = bestParent
+        }
+    })
+
+    return map
+}
+
+
+
+async function showCriticalPath(){
+
+    await fetch(API + "/schedule/earliest")
+
+    const res = await fetch(API + "/tasks")
+    const tasks = await res.json()
+
+    const criticalParents = getCriticalParents(tasks)
+
+    const container = document.getElementById("critical")
+    container.innerHTML = ""
+
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+
+    // 🔥 Trouver FIN (max)
+    let maxEnd = 0
+    let bestLast = null
+
+    lastTasks.forEach(t => {
+        const val = t.date_plus_tot + t.duree
+        if(val > maxEnd){
+            maxEnd = val
+            bestLast = t.nom
+        }
+    })
+
+    // 🔥 Construire chemin critique UNIQUE
+    let criticalSet = new Set()
+    let current = bestLast
+
+    while(current && current !== "DEBUT"){
+        criticalSet.add(current)
+        current = criticalParents[current]
+    }
+
+    // ================= TABLEAUX =================
+    tasks.forEach(task => {
+
+        const block = document.createElement("div")
+        block.className = "block"
+
+        let html = `<table>`
+
+        html += `
+            <tr class="top-row">
+                <td colspan="2">
+                    <span style="color:red">${task.date_plus_tot}</span>
+                    &nbsp; ${task.nom}
+                </td>
+            </tr>
+        `
+
+        if(task.dependances.length === 0){
+
+            html += `
+                <tr>
+                    <td style="color:red">0</td>
+                    <td class="split ${criticalSet.has(task.nom) ? 'critical-bold' : ''}">
+                        DEBUT 0
+                    </td>
+                </tr>
+            `
+
+        } else {
+
+            task.dependances.forEach(dep => {
+
+                const parent = tasks.find(t => t.id === dep)
+
+                if(parent){
+
+                    // 🔥 SEULEMENT le parent critique (MAX)
+                    const isCriticalLink =
+                        criticalParents[task.nom] === parent.nom &&
+                        criticalSet.has(task.nom)
+
+                    html += `
+                        <tr>
+                            <td class="${isCriticalLink ? 'critical-bold' : ''}" style="color:red">
+                                ${parent.date_plus_tot}
+                            </td>
+                            <td class="split ${isCriticalLink ? 'critical-bold' : ''}">
+                                ${parent.nom} ${parent.duree}
+                            </td>
+                        </tr>
+                    `
+                }
+            })
+        }
+
+        html += `</table>`
+
+        block.innerHTML = html
+        container.appendChild(block)
+    })
+
+    // ================= FIN =================
+    const endBlock = document.createElement("div")
+    endBlock.className = "block"
+
+    let endHTML = `<table>`
+
+    endHTML += `
+        <tr class="top-row">
+            <td colspan="2">
+                <span style="color:red">${maxEnd}</span> FIN
+            </td>
+        </tr>
+    `
+
+    lastTasks.forEach(t => {
+
+        const isCritical = (t.nom === bestLast)
+
+        endHTML += `
+            <tr>
+                <td class="${isCritical ? 'critical-bold' : ''}" style="color:red">
+                    ${t.date_plus_tot}
+                </td>
+                <td class="split ${isCritical ? 'critical-bold' : ''}">
+                    ${t.nom} ${t.duree}
+                </td>
+            </tr>
+        `
+    })
+
+    endHTML += `</table>`
+
+    endBlock.innerHTML = endHTML
+    container.appendChild(endBlock)
+
+    // ================= CHEMIN TEXTE =================
+
+    let result = "<h3>Chemin critique :</h3> "
+
+    let path = []
+    let node = bestLast
+
+    while(node && node !== "DEBUT"){
+        path.unshift(node)
+        node = criticalParents[node]
+    }
+
+    result += `<b>DEBUT</b>(0)`
+
+    path.forEach(name => {
+        const t = tasks.find(x => x.nom === name)
+        result += ` <span style="color:red">→</span> <b>${t.nom}</b>(${t.duree})`
+    })
+
+    result += ` <span style="color:red">→</span> <b>FIN</b>`
+
+    const pathDiv = document.createElement("div")
+    pathDiv.style.marginTop = "20px"
+    pathDiv.innerHTML = result
+
+    container.appendChild(pathDiv)
+}
+
+async function showLatestDates(){
+
+    // 🔥 récupérer données
+    await fetch(API + "/schedule/earliest")
+
+    const res = await fetch(API + "/tasks")
+    const tasks = await res.json()
+
+    const container = document.getElementById("latest")
+    container.innerHTML = ""
+
+    // 🔥 construire successeurs
+    let successorsMap = {}
+
+    tasks.forEach(t => successorsMap[t.nom] = [])
+
+    tasks.forEach(task => {
+        task.dependances.forEach(dep => {
+            const parent = tasks.find(t => t.id === dep)
+            if(parent){
+                successorsMap[parent.nom].push(task)
+            }
+        })
+    })
+
+    // 🔥 trouver FIN
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+
+    let maxEnd = 0
+    lastTasks.forEach(t => {
+        const val = t.date_plus_tot + t.duree
+        if(val > maxEnd){
+            maxEnd = val
+        }
+    })
+
+    // 🔥 calcul dates au plus tard
+    let latestMap = {}
+
+    // initialiser FIN
+    lastTasks.forEach(t => {
+        latestMap[t.nom] = maxEnd - t.duree
+    })
+
+    // 🔥 boucle inverse (approx simple)
+    let changed = true
+    while(changed){
+        changed = false
+
+        tasks.forEach(task => {
+
+            let successors = successorsMap[task.nom]
+
+            if(successors.length > 0){
+
+                let minVal = Infinity
+
+                successors.forEach(s => {
+                    const val = (latestMap[s.nom] !== undefined)
+                        ? latestMap[s.nom] - task.duree
+                        : Infinity
+
+                    if(val < minVal){
+                        minVal = val
+                    }
+                })
+
+                if(minVal !== Infinity){
+                    if(latestMap[task.nom] === undefined || minVal < latestMap[task.nom]){
+                        latestMap[task.nom] = minVal
+                        changed = true
+                    }
+                }
+            }
+        })
+    }
+        // ================= DEBUT =================
+const startBlock = document.createElement("div")
+startBlock.className = "block"
+
+let startHTML = `<table>`
+
+// 🔵 ligne 1 (date au plus tard = 0)
+startHTML += `
+    <tr class="top-row">
+        <td colspan="2">
+            <span class="latest-bold">0</span> DEBUT
+        </td>
+    </tr>
+`
+
+// 🔽 successeurs de DEBUT = tâches sans dépendances
+const startTasks = tasks.filter(t => t.dependances.length === 0)
+
+startTasks.forEach(t => {
+    startHTML += `
+        <tr>
+            <td class="latest-bold">${latestMap[t.nom] ?? ""}</td>
+            <td class="split">${t.nom} 0</td>
+        </tr>
+    `
+})
+
+startHTML += `</table>`
+
+startBlock.innerHTML = startHTML
+container.appendChild(startBlock)
+    // 🔥 AFFICHAGE TABLEAUX
+    tasks.forEach(task => {
+        
+        const block = document.createElement("div")
+        block.className = "block"
+
+        let html = `<table>`
+
+        // 🔵 ligne 1 = date au plus tard
+        html += `
+            <tr class="top-row">
+                <td colspan="2">
+                    <span class="latest-bold">${latestMap[task.nom] ?? 0}</span>
+                    &nbsp; ${task.nom}
+                </td>
+            </tr>
+        `
+
+        // 🔽 lignes successeurs
+        let successors = successorsMap[task.nom]
+
+        if(successors.length === 0){
+
+            html += `
+                <tr>
+                    <td class="latest-bold">${maxEnd}</td>
+                    <td class="split">FIN ${task.duree}</td>
+                </tr>
+            `
+
+        } else {
+
+            successors.forEach(s => {
+
+                html += `
+                    <tr>
+                        <td class="latest-bold">
+                            ${latestMap[s.nom] ?? ""}
+                        </td>
+                        <td class="split">
+                            ${s.nom} ${task.duree}
+                        </td>
+                    </tr>
+                `
+            })
+        }
+
+        html += `</table>`
+
+        block.innerHTML = html
+        container.appendChild(block)
+    })
+}
+
+</script>
+
+</body>
+</html>
