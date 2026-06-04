@@ -1,219 +1,515 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-<title>Ordonnancement tableau</title>
+<meta charset="UTF-8">
+<title>TaskFlow Pro - Ordonnancement de Projet</title>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
-    font-family: Arial;
-    background: #efefef;
-    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
     padding: 20px;
     position: relative;
 }
 
-/* HEADER */
+/* HEADER STYLÉ */
 .header {
-    text-align: right;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 20px 30px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    color: white;
+    text-align: center;
+    font-size: 28px;
     font-weight: bold;
-    font-size: 18px;
+    letter-spacing: 2px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* CARD */
+.header i {
+    margin-right: 15px;
+}
+
+/* CARD MODERNE */
 .card {
-    background: #e6e6e6;
-    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 25px;
     margin-top: 20px;
-    border-radius: 10px;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* INPUT */
-input {
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+
+.card h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    border-left: 4px solid #667eea;
+    padding-left: 15px;
+    font-weight: 600;
+}
+
+.step-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+/* FORMULAIRES STYLÉS */
+input, textarea, select {
     display: block;
     margin: 10px 0;
-    padding: 8px;
-    width: 200px;
+    padding: 12px 15px;
+    width: 100%;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    outline: none;
+    background: white;
 }
 
-/* BUTTON */
+input:focus, textarea:focus, select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* BOUTONS MODERNES */
 button {
-    padding: 10px 20px;
-    background: #ccc;
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
     cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 5px;
 }
 
-/* TABLE STYLE (ligne horizontale) */
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.btn-back {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+/* TABLEAU STYLÉ */
 .matrix {
     display: grid;
-    gap: 5px;
-    margin-top: 10px;
+    gap: 8px;
+    margin-top: 20px;
+    overflow-x: auto;
 }
 
 .cell {
-    background: #d9d9d9;
-    padding: 8px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 12px;
     text-align: center;
-    border-radius: 4px;
-    border: 1px solid #bbb;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.3);
+    font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-/* STEP */
-.step {
+.cell:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.cell b {
+    color: #2c3e50;
+}
+
+/* BLOCS DE TÂCHES STYLÉS */
+.block {
+    display: inline-block;
+    margin: 15px;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.block table {
+    border-collapse: collapse;
+    background: white;
+}
+
+.block td {
+    border: 1px solid #e0e0e0;
+    padding: 12px 15px;
+    text-align: center;
     font-size: 14px;
-    margin-bottom: 10px;
 }
 
-/* NOTIF */
-.notif {
-    position: absolute;
-    top: 50px;
-    right: 20px;
-    background: #ccc;
-    padding: 10px;
-    border-radius: 5px;
+.top-row td {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    border: none;
 }
 
-.next-btn {
-    position: absolute;
-    top: 255px; /* AVANT 100px → maintenant plus bas */
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+.critical-bold {
+    color: #e74c3c !important;
+    font-weight: bold;
+    background: #fee !important;
 }
 
-/* FLOW (chemin critique) */
+.latest-bold {
+    color: #3498db !important;
+    font-weight: bold;
+    background: #e3f2fd !important;
+}
+
+/* FLOW GRAPHIQUE */
 .flow {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 15px;
+    margin-top: 20px;
 }
 
 .circle {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    background: #ccc;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    text-align: center;
+    flex-direction: column;
+}
+
+.circle:hover {
+    transform: scale(1.1);
 }
 
 .arrow {
     display: flex;
     flex-direction: column;
     align-items: center;
+    font-weight: bold;
 }
 
 .duration {
+    background: #ff6b6b;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 20px;
     font-size: 12px;
+    margin-bottom: 5px;
+}
+
+/* NOTIFICATION */
+.notif {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    animation: slideIn 0.5s ease;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.notif.error {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* GRAPHIQUE STATS */
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+canvas {
+    max-height: 300px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.stat-label {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 5px;
 }
 
 .hidden {
     display: none;
 }
 
-.block {
+/* SCROLLBAR */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .flow {
+        flex-direction: column;
+    }
+    
+    .circle {
+        width: 50px;
+        height: 50px;
+        font-size: 10px;
+    }
+    
+    .block {
+        display: block;
+        margin: 15px 0;
+    }
+    
+    .header {
+        font-size: 20px;
+        padding: 15px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* LOADING SPINNER */
+.loading {
     display: inline-block;
-    margin: 10px;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
 }
 
-.block table {
-    border-collapse: collapse;
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
-.block td {
-    border: 1px solid black;
-    padding: 6px 10px;
-    text-align: center;
+/* BOUTON SUPPRIMER DANS LE TABLEAU */
+.delete-btn {
+    background: #ff4757;
+    padding: 5px 10px;
+    font-size: 12px;
+    margin: 0;
 }
 
-.top-row {
-    border-bottom: 1px solid black;
-}
-
-.split {
-    border-left: 1px solid black;
-}
-
-.critical-bold {
-    color: red;
-    font-weight: bold;
-}
-
-.latest-bold {
-    color: blue;
-    font-weight: bold;
+.delete-btn:hover {
+    background: #e03e4e;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">ORDONNANCEMENT TABLEAU</div>
+<div class="header">
+    <i class="fas fa-project-diagram"></i> TaskFlow Pro - Ordonnancement de Projet
+</div>
 
 <!-- ================= PAGE 1 ================= -->
 <div id="page1">
 
 <div class="card">
+    <div class="step-badge">
+        <i class="fas fa-plus-circle"></i> Étape 1
+    </div>
+    <h3><i class="fas fa-tasks"></i> Ajouter une nouvelle tâche</h3>
 
-<div class="step">Etape 1</div>
-<h3>Ajouter une tâche</h3>
+    <input id="nom" placeholder="📝 Nom de la tâche" autocomplete="off">
+    <input id="duree" type="number" placeholder="⏱️ Durée (en jours)">
+    <input id="dependances" placeholder="🔗 Tâches antérieures (séparées par des virgules)">
 
-<input id="nom" placeholder="Nom">
-<input id="duree" placeholder="Durée">
-<input id="dependances" placeholder="Tâches antérieures (A,B)">
-
-<button onclick="addTask()">Ajouter</button>
-
-<div class="notif hidden" id="notif">✔ Calcul effectué</div>
-<div class="next-btn hidden" id="nextBtn" onclick="goRealPage2()">➤</div>
+    <button onclick="addTask()">
+        <i class="fas fa-plus"></i> Ajouter la tâche
+    </button>
 </div>
 
+<!-- Liste des tâches (s'affiche automatiquement) -->
 <div class="card">
-
-<h3>Liste des tâches</h3>
-
-<div id="matrix" class="matrix hidden"></div>
-
+    <div class="step-badge">
+        <i class="fas fa-list"></i> Liste des tâches
+    </div>
+    <h3><i class="fas fa-table"></i> Tableau des tâches</h3>
+    <div id="matrix" class="matrix"></div>
 </div>
 
-<button onclick="goToPage2()">Calculer</button>
-<button onclick="showMatrix()">Afficher liste des tâches</button>
+<div style="text-align: center; margin-top: 20px;">
+    <button class="btn-secondary" onclick="goToPage2()">
+        <i class="fas fa-calculator"></i> Calculer l'ordonnancement
+    </button>
+</div>
+
+<div class="notif hidden" id="notif">
+    <i class="fas fa-check-circle"></i> <span id="notifMessage">Calcul effectué avec succès !</span>
+</div>
 
 </div>
 
 <!-- ================= PAGE 2 ================= -->
 <div id="page2" class="hidden">
-<button onclick="goBack()">← Retour</button>
-<!-- ETAPE 2 -->
-<div class="card">
-<div class="step">Etape 2</div>
-<h3>Dates au plus tôt</h3>
-<div id="earliest"></div>
+<div style="margin-bottom: 20px;">
+    <button class="btn-back" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i> Retour
+    </button>
 </div>
 
-<!-- ETAPE 3 -->
+<!-- STATS GRAPHIQUES -->
 <div class="card">
-<div class="step">Etape 3</div>
-<h3>Chemin critique</h3>
-<div id="critical"></div> <!-- tableaux -->
-<div id="criticalFlow" class="flow"></div> <!-- graphe -->
+    <div class="step-badge">
+        <i class="fas fa-chart-line"></i> Dashboard
+    </div>
+    <h3><i class="fas fa-chart-pie"></i> Statistiques du projet</h3>
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+            <div class="stat-number" id="totalTasks">0</div>
+            <div class="stat-label">Total tâches</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="criticalTasks">0</div>
+            <div class="stat-label">Tâches critiques</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="projectDuration">0</div>
+            <div class="stat-label">Durée projet (jours)</div>
+        </div>
+    </div>
+    <div class="chart-container">
+        <canvas id="priorityChart"></canvas>
+    </div>
 </div>
 
-<!-- ETAPE 4 -->
 <div class="card">
-<div class="step">Etape 4</div>
-<h3>Dates au plus tard</h3>
-<div id="latest"></div>
+    <div class="step-badge">
+        <i class="fas fa-clock"></i> Étape 2
+    </div>
+    <h3><i class="fas fa-calendar-alt"></i> Dates au plus tôt</h3>
+    <div id="earliest"></div>
+</div>
+
+<div class="card">
+    <div class="step-badge">
+        <i class="fas fa-road"></i> Étape 3
+    </div>
+    <h3><i class="fas fa-chart-line"></i> Chemin critique</h3>
+    <div id="critical"></div>
+    <div id="criticalFlow" class="flow"></div>
+</div>
+
+<div class="card">
+    <div class="step-badge">
+        <i class="fas fa-clock"></i> Étape 4
+    </div>
+    <h3><i class="fas fa-calendar-week"></i> Dates au plus tard</h3>
+    <div id="latest"></div>
 </div>
 
 </div>
@@ -222,550 +518,541 @@ button {
 
 const API = "http://127.0.0.1:8000"
 
+// Variables globales
+let chart = null;
 
-function showMatrix(){
-    const matrix = document.getElementById("matrix")
-    matrix.classList.remove("hidden")
-    loadMatrix()
+// Fonction d'affichage de notification
+function showNotification(message, isError = false) {
+    const notif = document.getElementById("notif");
+    const notifMessage = document.getElementById("notifMessage");
+    notifMessage.innerHTML = message;
+    if (isError) {
+        notif.classList.add("error");
+    } else {
+        notif.classList.remove("error");
+    }
+    notif.classList.remove("hidden");
+    setTimeout(() => {
+        notif.classList.add("hidden");
+    }, 3000);
 }
 
-// ================= ADD =================
-async function addTask(){
+// Supprimer une tâche
+async function deleteTask(taskId, taskName) {
+    if (confirm(`Supprimer la tâche "${taskName}" ?`)) {
+        try {
+            const response = await fetch(`${API}/tasks/${taskId}`, {
+                method: "DELETE"
+            });
+            if (response.ok) {
+                showNotification(`Tâche "${taskName}" supprimée avec succès !`);
+                await loadMatrix();
+            } else {
+                showNotification("Erreur lors de la suppression", true);
+            }
+        } catch (error) {
+            console.error("Erreur suppression:", error);
+            showNotification("Erreur de connexion au serveur", true);
+        }
+    }
+}
 
-    const nom = document.getElementById("nom").value.trim()
-    const duree = parseInt(document.getElementById("duree").value)
+// Chargement automatique de la matrice
+async function loadMatrix() {
+    try {
+        const res = await fetch(API + "/tasks");
+        const tasks = await res.json();
 
-    if(!nom || isNaN(duree)){
-        alert("Remplir nom et durée correctement")
-        return
+        const matrix = document.getElementById("matrix");
+        matrix.innerHTML = "";
+        
+        if (tasks.length === 0) {
+            matrix.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-inbox fa-3x"></i><br/>Aucune tâche pour le moment</div>';
+            return;
+        }
+
+        let successorsMap = {};
+        tasks.forEach(t => successorsMap[t.nom] = []);
+
+        tasks.forEach(t => {
+            t.dependances.forEach(dep => {
+                const parent = tasks.find(x => x.id === dep);
+                if (parent) successorsMap[parent.nom].push(t.nom);
+            });
+        });
+
+        // Définir les colonnes
+        matrix.style.gridTemplateColumns = `180px repeat(${tasks.length}, 1fr)`;
+
+        // Ligne 1 : Tâche
+        matrix.innerHTML += `<div class="cell"><b><i class="fas fa-tag"></i> Tâche</b></div>`;
+        tasks.forEach(t => {
+            matrix.innerHTML += `<div class="cell">${t.nom}</div>`;
+        });
+
+        // Ligne 2 : Durée
+        matrix.innerHTML += `<div class="cell"><b><i class="fas fa-hourglass-half"></i> Durée</b></div>`;
+        tasks.forEach(t => {
+            matrix.innerHTML += `<div class="cell">${t.duree} j</div>`;
+        });
+
+        // Ligne 3 : Antérieures
+        matrix.innerHTML += `<div class="cell"><b><i class="fas fa-backward"></i> Antérieures</b></div>`;
+        tasks.forEach(t => {
+            const val = t.dependances.map(d => tasks.find(x => x.id === d)?.nom).join(",") || "-";
+            matrix.innerHTML += `<div class="cell">${val}</div>`;
+        });
+
+        // Ligne 4 : Successeurs
+        matrix.innerHTML += `<div class="cell"><b><i class="fas fa-forward"></i> Successeurs</b></div>`;
+        tasks.forEach(t => {
+            const val = successorsMap[t.nom].join(",") || "FIN";
+            matrix.innerHTML += `<div class="cell">${val}</div>`;
+        });
+
+        // Ligne 5 : Actions
+        matrix.innerHTML += `<div class="cell"><b><i class="fas fa-cog"></i> Actions</b></div>`;
+        tasks.forEach(t => {
+            matrix.innerHTML += `<div class="cell"><button class="delete-btn" onclick="deleteTask(${t.id}, '${t.nom}')"><i class="fas fa-trash"></i> Supprimer</button></div>`;
+        });
+
+    } catch (error) {
+        console.error("Erreur chargement matrice:", error);
+        showNotification("Erreur de connexion au serveur", true);
+    }
+}
+
+// Ajouter une tâche (rafraîchissement auto)
+async function addTask() {
+    const nom = document.getElementById("nom").value.trim();
+    const duree = parseInt(document.getElementById("duree").value);
+
+    if (!nom || isNaN(duree)) {
+        showNotification("Veuillez remplir le nom et la durée correctement", true);
+        return;
     }
 
-    const res = await fetch(API + "/tasks")
-    const data = await res.json()
+    try {
+        const res = await fetch(API + "/tasks");
+        const data = await res.json();
 
-    const depNames = document.getElementById("dependances").value
-        .split(",")
-        .map(x=>x.trim())
-        .filter(x=>x)
+        const depNames = document.getElementById("dependances").value
+            .split(",")
+            .map(x => x.trim())
+            .filter(x => x);
 
-    const dependances = depNames.map(name => {
-        const t = data.find(x => x.nom === name)
-        return t ? t.id : null
-    }).filter(x=>x)
+        const dependances = depNames.map(name => {
+            const t = data.find(x => x.nom === name);
+            return t ? t.id : null;
+        }).filter(x => x);
 
-    const task = {
-        id: Date.now(),
-        nom: nom,
-        duree: duree,
-        date_plus_tot:0,
-        date_plus_tard:0,
-        marge:0,
-        dependances:dependances
+        const task = {
+            id: Date.now(),
+            nom: nom,
+            duree: duree,
+            date_plus_tot: 0,
+            date_plus_tard: 0,
+            marge: 0,
+            dependances: dependances
+        };
+
+        const response = await fetch(API + "/tasks", {
+            method: "POST",
+            body: JSON.stringify(task),
+            headers: { "Content-Type": "application/json" }
+        });
+
+        if (response.ok) {
+            // Réinitialiser les inputs
+            document.getElementById("nom").value = "";
+            document.getElementById("duree").value = "";
+            document.getElementById("dependances").value = "";
+
+            // Recharger automatiquement la matrice
+            await loadMatrix();
+
+            // Notification de succès
+            showNotification(`Tâche "${nom}" ajoutée avec succès !`);
+        } else {
+            showNotification("Erreur lors de l'ajout de la tâche", true);
+        }
+        
+    } catch (error) {
+        console.error("Erreur ajout tâche:", error);
+        showNotification("Erreur de connexion au serveur", true);
     }
-
-    await fetch(API+"/tasks",{
-        method:"POST",
-        body:JSON.stringify(task),
-        headers:{"Content-Type":"application/json"}
-    })
-
-    // reset inputs
-    document.getElementById("nom").value = ""
-    document.getElementById("duree").value = ""
-    document.getElementById("dependances").value = ""
-
-    loadMatrix()
 }
 
-// ================= MATRIX =================
-async function loadMatrix(){
-
-    const res = await fetch(API+"/tasks")
-    const tasks = await res.json()
-
-    const matrix = document.getElementById("matrix")
-    matrix.innerHTML=""
-
-    let successorsMap = {}
-    tasks.forEach(t=>successorsMap[t.nom]=[])
-
-    tasks.forEach(t=>{
-        t.dependances.forEach(dep=>{
-            const parent = tasks.find(x=>x.id===dep)
-            if(parent) successorsMap[parent.nom].push(t.nom)
-        })
-    })
-
-    const nbCols = tasks.length + 1
-
-    // 🔥 définir colonnes FIXES
-    matrix.style.gridTemplateColumns = `180px repeat(${tasks.length}, 1fr)`
-
-    // 🔥 ligne 1 : Tâche
-    matrix.innerHTML += `<div class="cell"><b>Tâche</b></div>`
-    tasks.forEach(t=>{
-        matrix.innerHTML += `<div class="cell">${t.nom}</div>`
-    })
-
-    // 🔥 ligne 2 : Durée
-    matrix.innerHTML += `<div class="cell"><b>Durée</b></div>`
-    tasks.forEach(t=>{
-        matrix.innerHTML += `<div class="cell">${t.duree}</div>`
-    })
-
-    // 🔥 ligne 3 : Antérieures
-    matrix.innerHTML += `<div class="cell"><b>Tâches antérieures</b></div>`
-    tasks.forEach(t=>{
-        const val = t.dependances.map(d=>tasks.find(x=>x.id===d)?.nom).join(",") || "-"
-        matrix.innerHTML += `<div class="cell">${val}</div>`
-    })
-
-    // 🔥 ligne 4 : Successeurs
-    matrix.innerHTML += `<div class="cell"><b>Tâches successeurs</b></div>`
-    tasks.forEach(t=>{
-        const val = successorsMap[t.nom].join(",") || "FIN"
-        matrix.innerHTML += `<div class="cell">${val}</div>`
-    })
+// Navigation et calcul
+async function goToPage2() {
+    showNotification("Calcul en cours...");
+    
+    setTimeout(async () => {
+        try {
+            await loadEarliest();
+            await loadCritical();
+            await loadLatest();
+            await loadStatsAndChart();
+            
+            document.getElementById("page1").classList.add("hidden");
+            document.getElementById("page2").classList.remove("hidden");
+            
+            showNotification("Calcul effectué avec succès !");
+        } catch (error) {
+            console.error("Erreur calcul:", error);
+            showNotification("Erreur lors du calcul", true);
+        }
+    }, 500);
 }
 
-// ================= NAVIGATION =================
-function goToPage2(){
-    document.getElementById("notif").classList.remove("hidden")
-    document.getElementById("nextBtn").classList.remove("hidden")
-}
-function goRealPage2(){
-    document.getElementById("page1").classList.add("hidden")
-    document.getElementById("page2").classList.remove("hidden")
-
-    loadEarliest()
-    loadCritical()
-    loadLatest()
+function goBack() {
+    document.getElementById("page2").classList.add("hidden");
+    document.getElementById("page1").classList.remove("hidden");
 }
 
-function goBack(){
-    document.getElementById("page2").classList.add("hidden")
-    document.getElementById("page1").classList.remove("hidden")
+// Charger les statistiques et graphique
+async function loadStatsAndChart() {
+    try {
+        await fetch(API + "/schedule/earliest");
+        await fetch(API + "/schedule/latest");
+        await fetch(API + "/schedule/margins");
+        
+        const res = await fetch(API + "/tasks");
+        const tasks = await res.json();
+        
+        const total = tasks.length;
+        const critical = tasks.filter(t => t.marge === 0).length;
+        
+        let maxEnd = 0;
+        const tasksWithSuccessors = tasks.flatMap(t => t.dependances);
+        const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id));
+        lastTasks.forEach(t => {
+            const val = t.date_plus_tot + t.duree;
+            if (val > maxEnd) maxEnd = val;
+        });
+        
+        document.getElementById("totalTasks").innerHTML = total;
+        document.getElementById("criticalTasks").innerHTML = critical;
+        document.getElementById("projectDuration").innerHTML = maxEnd;
+        
+        // Graphique
+        updateChart(tasks);
+        
+    } catch (error) {
+        console.error("Erreur stats:", error);
+    }
+}
+
+function updateChart(tasks) {
+    const marge0 = tasks.filter(t => t.marge === 0).length;
+    const margePositive = tasks.filter(t => t.marge > 0).length;
+    
+    const ctx = document.getElementById('priorityChart').getContext('2d');
+    
+    if (chart) chart.destroy();
+    
+    chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Tâches critiques (marge=0)', 'Tâches non critiques (marge>0)'],
+            datasets: [{
+                data: [marge0, margePositive],
+                backgroundColor: ['#e74c3c', '#2ecc71'],
+                borderColor: ['#c0392b', '#27ae60'],
+                borderWidth: 2,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 12, weight: 'bold' },
+                        color: '#333'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = marge0 + margePositive;
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            },
+            animation: {
+                animateScale: true,
+                animateRotate: true
+            }
+        }
+    });
 }
 
 // ================= EARLIEST =================
-async function loadEarliest(){
+async function loadEarliest() {
+    await fetch(API + "/schedule/earliest");
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
 
-    await fetch(API + "/schedule/earliest")
+    const container = document.getElementById("earliest");
+    container.innerHTML = "";
 
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
-
-    const container = document.getElementById("earliest")
-    container.innerHTML = ""
-
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances);
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id));
 
     tasks.forEach(task => {
+        const block = document.createElement("div");
+        block.className = "block";
 
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
+        let html = `<table>`;
         html += `
         <tr class="top-row">
             <td colspan="2">
-                <span style="color:red">${task.date_plus_tot}</span> ${task.nom}
+                <i class="fas fa-play-circle"></i> <strong>${task.nom}</strong> (Début: ${task.date_plus_tot})
             </td>
-        </tr>`
+        </tr>`;
 
-        if(task.dependances.length === 0){
+        if (task.dependances.length === 0) {
             html += `
             <tr>
-                <td style="color:red">0</td>
-                <td class="split">DEBUT 0</td>
-            </tr>`
+                <td style="color: green; font-weight: bold;">0</td>
+                <td class="split">🚀 DEBUT 0</td>
+            </tr>`;
         } else {
             task.dependances.forEach(dep => {
-                const parent = tasks.find(t => t.id === dep)
+                const parent = tasks.find(t => t.id === dep);
                 html += `
                 <tr>
-                    <td style="color:red">${parent.date_plus_tot}</td>
-                    <td class="split">${parent.nom} ${parent.duree}</td>
-                </tr>`
-            })
+                    <td style="color: #e74c3c; font-weight: bold;">${parent.date_plus_tot}</td>
+                    <td class="split">${parent.nom} (${parent.duree}j)</td>
+                </tr>`;
+            });
         }
 
-        html += `</table>`
+        html += `</table>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    });
 
-        block.innerHTML = html
-        container.appendChild(block)
-    })
-
-    // ===== FIN =====
-    const endBlock = document.createElement("div")
-    endBlock.className = "block"
-
-    let maxEnd = 0
-
+    // FIN
+    let maxEnd = 0;
     lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd) maxEnd = val
-    })
+        const val = t.date_plus_tot + t.duree;
+        if (val > maxEnd) maxEnd = val;
+    });
 
+    const endBlock = document.createElement("div");
+    endBlock.className = "block";
     let endHTML = `<table>
         <tr class="top-row">
             <td colspan="2">
-                <span style="color:red">${maxEnd}</span> FIN
+                <i class="fas fa-flag-checkered"></i> <strong>FIN</strong> (${maxEnd})
             </td>
-        </tr>`
-
+        </tr>`;
     lastTasks.forEach(t => {
         endHTML += `
         <tr>
-            <td style="color:red">${t.date_plus_tot}</td>
-            <td class="split">${t.nom} ${t.duree}</td>
-        </tr>`
-    })
-
-    endHTML += `</table>`
-
-    endBlock.innerHTML = endHTML
-    container.appendChild(endBlock)
+            <td style="color: #e74c3c; font-weight: bold;">${t.date_plus_tot}</td>
+            <td class="split">${t.nom} (${t.duree}j)</td>
+        </tr>`;
+    });
+    endHTML += `</table>`;
+    endBlock.innerHTML = endHTML;
+    container.appendChild(endBlock);
 }
 
-// ================= CRITICAL FLOW =================
-function getCriticalParents(tasks){
+// ================= CRITICAL PATH =================
+async function loadCritical() {
+    await fetch(API + "/schedule/earliest");
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
 
-    const map = {}
+    const container = document.getElementById("critical");
+    const flow = document.getElementById("criticalFlow");
 
-    tasks.forEach(task => {
+    if (!container || !flow) return;
 
-        if(task.dependances.length === 0){
-            map[task.nom] = "DEBUT"
-        } else {
+    container.innerHTML = "";
+    flow.innerHTML = "";
 
-            let maxVal = -1
-            let bestParent = null
-
-            task.dependances.forEach(dep => {
-
-                const parent = tasks.find(t => t.id === dep)
-
-                if(parent){
-                    const val = parent.date_plus_tot + parent.duree
-
-                    if(val > maxVal){
-                        maxVal = val
-                        bestParent = parent.nom
-                    }
-                }
-            })
-
-            map[task.nom] = bestParent
-        }
-    })
-
-    return map
-}
-
-async function loadCritical(){
-
-    await fetch(API + "/schedule/earliest")
-
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
-
-    const container = document.getElementById("critical")
-    const flow = document.getElementById("criticalFlow")
-
-    if(!container || !flow) return
-
-    container.innerHTML = ""
-    flow.innerHTML = ""
-
-    // ================= SUCCESSEURS =================
-    let successorsMap = {}
-    tasks.forEach(t => successorsMap[t.nom] = [])
+    // Calcul du chemin critique
+    let successorsMap = {};
+    tasks.forEach(t => successorsMap[t.nom] = []);
 
     tasks.forEach(task => {
         task.dependances.forEach(dep => {
-            const parent = tasks.find(t => t.id === dep)
-            if(parent){
-                successorsMap[parent.nom].push(task)
-            }
-        })
-    })
+            const parent = tasks.find(t => t.id === dep);
+            if (parent) successorsMap[parent.nom].push(task);
+        });
+    });
 
-    // ================= FIN =================
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances);
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id));
 
-    let maxEnd = 0
-    let bestLast = null
-
+    let maxEnd = 0;
+    let bestLast = null;
     lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd){
-            maxEnd = val
-            bestLast = t
+        const val = t.date_plus_tot + t.duree;
+        if (val > maxEnd) {
+            maxEnd = val;
+            bestLast = t;
         }
-    })
+    });
 
-    // ================= REMONTÉE CRITIQUE =================
-    let criticalLinks = {}
-
-    let current = bestLast
-
-    while(current){
-
-        if(current.dependances.length === 0){
-            criticalLinks[current.nom] = "DEBUT"
-            break
+    // Remontée critique
+    let criticalLinks = {};
+    let current = bestLast;
+    while (current) {
+        if (current.dependances.length === 0) {
+            criticalLinks[current.nom] = "DEBUT";
+            break;
         }
-
-        let maxVal = -1
-        let bestParent = null
-
+        let maxVal = -1;
+        let bestParent = null;
         current.dependances.forEach(dep => {
-            const parent = tasks.find(t => t.id === dep)
-            const val = parent.date_plus_tot + parent.duree
-
-            if(val > maxVal){
-                maxVal = val
-                bestParent = parent
+            const parent = tasks.find(t => t.id === dep);
+            const val = parent.date_plus_tot + parent.duree;
+            if (val > maxVal) {
+                maxVal = val;
+                bestParent = parent;
             }
-        })
-
-        criticalLinks[current.nom] = bestParent.nom
-        current = bestParent
+        });
+        criticalLinks[current.nom] = bestParent.nom;
+        current = bestParent;
     }
 
-    // ================= TABLEAUX TÂCHES =================
+    // Affichage des tableaux
     tasks.forEach(task => {
-
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
-        html += `
+        const block = document.createElement("div");
+        block.className = "block";
+        let html = `<table>
         <tr class="top-row">
             <td colspan="2">
-                <span style="color:red">${task.date_plus_tot}</span> ${task.nom}
+                <i class="fas fa-star-of-life"></i> <strong>${task.nom}</strong> (Début: ${task.date_plus_tot})
             </td>
-        </tr>`
-
-        if(task.dependances.length === 0){
-
-            const isCritical = criticalLinks[task.nom] === "DEBUT"
-
-            html += `
-            <tr>
-                <td class="${isCritical ? 'critical-bold' : ''}" style="color:red">0</td>
-                <td class="split ${isCritical ? 'critical-bold' : ''}">
-                    DEBUT 0
-                </td>
-            </tr>`
-
+        </tr>`;
+        
+        if (task.dependances.length === 0) {
+            const isCritical = criticalLinks[task.nom] === "DEBUT";
+            html += `<tr><td class="${isCritical ? 'critical-bold' : ''}">0</td><td class="split ${isCritical ? 'critical-bold' : ''}">DEBUT 0</td></tr>`;
         } else {
-
             task.dependances.forEach(dep => {
-
-                const parent = tasks.find(t => t.id === dep)
-
-                const isCritical =
-                    criticalLinks[task.nom] === parent.nom
-
-                html += `
-                <tr>
-                    <td class="${isCritical ? 'critical-bold' : ''}" style="color:red">
-                        ${parent.date_plus_tot}
-                    </td>
-                    <td class="split ${isCritical ? 'critical-bold' : ''}">
-                        ${parent.nom} ${parent.duree}
-                    </td>
-                </tr>`
-            })
+                const parent = tasks.find(t => t.id === dep);
+                const isCritical = criticalLinks[task.nom] === parent.nom;
+                html += `<tr><td class="${isCritical ? 'critical-bold' : ''}">${parent.date_plus_tot}</td><td class="split ${isCritical ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}</td></tr>`;
+            });
         }
+        html += `</table>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    });
 
-        html += `</table>`
-
-        block.innerHTML = html
-        container.appendChild(block)
-    })
-
-    // ================= 🔴 TABLEAU FIN =================
-    const endBlock = document.createElement("div")
-    endBlock.className = "block"
-
+    // Tableau FIN
+    const endBlock = document.createElement("div");
+    endBlock.className = "block";
     let endHTML = `<table>
         <tr class="top-row">
             <td colspan="2">
-                <span style="color:red">${maxEnd}</span> FIN
+                <i class="fas fa-flag-checkered"></i> <strong>FIN</strong> (${maxEnd})
             </td>
-        </tr>`
-
+        </tr>`;
     lastTasks.forEach(t => {
+        const isCritical = (t.nom === bestLast?.nom);
+        endHTML += `<tr><td class="${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td><td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td></tr>`;
+    });
+    endHTML += `</table>`;
+    endBlock.innerHTML = endHTML;
+    container.appendChild(endBlock);
 
-        const isCritical = (t.nom === bestLast.nom)
-
-        endHTML += `
-        <tr>
-            <td class="${isCritical ? 'critical-bold' : ''}" style="color:red">
-                ${t.date_plus_tot}
-            </td>
-            <td class="split ${isCritical ? 'critical-bold' : ''}">
-                ${t.nom} ${t.duree}
-            </td>
-        </tr>`
-    })
-
-    endHTML += `</table>`
-
-    endBlock.innerHTML = endHTML
-    container.appendChild(endBlock)
-
-    // ================= 🔴 GRAPHE =================
-    let path = []
-    let node = bestLast
-
-    while(node){
-        path.unshift(node)
-        const parentName = criticalLinks[node.nom]
-        if(parentName === "DEBUT") break
-        node = tasks.find(t => t.nom === parentName)
+    // Graphe du chemin critique
+    let path = [];
+    let node = bestLast;
+    while (node) {
+        path.unshift(node);
+        const parentName = criticalLinks[node.nom];
+        if (parentName === "DEBUT") break;
+        node = tasks.find(t => t.nom === parentName);
     }
 
-    // 🔴 DEBUT
-    flow.innerHTML = `
-        <div class="circle">DEBUT</div>
-        <div class="arrow">
-            <div class="duration">0</div>
-            →
-        </div>
-    `
-
-    // 🔴 chemin
-    path.forEach((t,i) => {
-
-        flow.innerHTML += `<div class="circle">${t.nom}</div>`
-
-        // durée = tâche actuelle (sauf FIN)
-        flow.innerHTML += `
-        <div class="arrow">
-            <div class="duration">${t.duree}</div>
-            →
-        </div>`
-    })
-
-    // 🔴 FIN
-    flow.innerHTML += `<div class="circle">FIN</div>`
+    flow.innerHTML = `<div class="circle"><i class="fas fa-play"></i><br/>DEBUT</div><div class="arrow"><div class="duration">0</div><i class="fas fa-arrow-right fa-2x"></i></div>`;
+    path.forEach(t => {
+        flow.innerHTML += `<div class="circle"><i class="fas fa-tasks"></i><br/>${t.nom}</div><div class="arrow"><div class="duration">${t.duree}j</div><i class="fas fa-arrow-right fa-2x"></i></div>`;
+    });
+    flow.innerHTML += `<div class="circle"><i class="fas fa-flag-checkered"></i><br/>FIN</div>`;
 }
-async function loadLatest(){
 
-    await fetch(API + "/schedule/earliest")
-    await fetch(API + "/schedule/latest")
+// ================= LATEST =================
+async function loadLatest() {
+    await fetch(API + "/schedule/earliest");
+    await fetch(API + "/schedule/latest");
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
 
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
+    const container = document.getElementById("latest");
+    container.innerHTML = "";
 
-    const container = document.getElementById("latest")
-    container.innerHTML = ""
-
-    // 🔥 construire successeurs
-    let successorsMap = {}
-    tasks.forEach(t => successorsMap[t.nom] = [])
+    let successorsMap = {};
+    tasks.forEach(t => successorsMap[t.nom] = []);
 
     tasks.forEach(task => {
         task.dependances.forEach(dep => {
-            const parent = tasks.find(t => t.id === dep)
-            if(parent){
-                successorsMap[parent.nom].push(task)
-            }
-        })
-    })
+            const parent = tasks.find(t => t.id === dep);
+            if (parent) successorsMap[parent.nom].push(task);
+        });
+    });
 
-    // 🔥 trouver FIN
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
+    const tasksWithSuccessors = tasks.flatMap(t => t.dependances);
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id));
 
-    let maxEnd = 0
+    let maxEnd = 0;
     lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd){
-            maxEnd = val
-        }
-    })
+        const val = t.date_plus_tot + t.duree;
+        if (val > maxEnd) maxEnd = val;
+    });
 
-    // ================= 🔵 DEBUT =================
-    const startBlock = document.createElement("div")
-    startBlock.className = "block"
-
-    let startHTML = `<table>`
-
-    startHTML += `
-        <tr class="top-row">
-            <td colspan="2">
-                <span class="latest-bold">0</span> DEBUT
-            </td>
-        </tr>
-    `
-
-    const startTasks = tasks.filter(t => t.dependances.length === 0)
-
+    // DEBUT
+    const startBlock = document.createElement("div");
+    startBlock.className = "block";
+    let startHTML = `<table><tr class="top-row"><td colspan="2"><i class="fas fa-hourglass-start"></i> <strong>DEBUT</strong> (0)</td></tr>`;
+    const startTasks = tasks.filter(t => t.dependances.length === 0);
     startTasks.forEach(t => {
-        startHTML += `
-            <tr>
-                <td class="latest-bold">${t.date_plus_tard}</td>
-                <td class="split">${t.nom} 0</td>
-            </tr>
-        `
-    })
+        startHTML += `<tr><td class="latest-bold">${t.date_plus_tard}</td><td class="split">${t.nom} ${t.duree}j</td></tr>`;
+    });
+    startHTML += `</table>`;
+    startBlock.innerHTML = startHTML;
+    container.appendChild(startBlock);
 
-    startHTML += `</table>`
-
-    startBlock.innerHTML = startHTML
-    container.appendChild(startBlock)
-
-    // ================= 🔵 AUTRES =================
+    // Autres tâches
     tasks.forEach(task => {
-
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
-        html += `
-        <tr class="top-row">
-            <td colspan="2">
-                <span class="latest-bold">${task.date_plus_tard}</span> ${task.nom}
-            </td>
-        </tr>`
-
-        const successors = successorsMap[task.nom]
-
-        if(successors.length === 0){
-
-            html += `
-            <tr>
-                <td class="latest-bold">${maxEnd}</td>
-                <td class="split">FIN ${task.duree}</td>
-            </tr>`
-
+        const block = document.createElement("div");
+        block.className = "block";
+        let html = `<table><tr class="top-row"><td colspan="2"><i class="fas fa-hourglass-half"></i> <strong>${task.nom}</strong> (Fin au plus tard: ${task.date_plus_tard})</td></tr>`;
+        
+        const successors = successorsMap[task.nom];
+        if (successors.length === 0) {
+            html += `<tr><td class="latest-bold">${maxEnd}</td><td class="split">FIN ${task.duree}j</td></tr>`;
         } else {
-
             successors.forEach(s => {
-                html += `
-                <tr>
-                    <td class="latest-bold">${s.date_plus_tard}</td>
-                    <td class="split">${s.nom} ${task.duree}</td>
-                </tr>`
-            })
+                html += `<tr><td class="latest-bold">${s.date_plus_tard}</td><td class="split">${s.nom} ${task.duree}j</td></tr>`;
+            });
         }
-
-        html += `</table>`
-
-        block.innerHTML = html
-        container.appendChild(block)
-    })
+        html += `</td>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    });
 }
+
+// Chargement initial
+loadMatrix();
+
+// Rafraîchissement périodique (optionnel)
+setInterval(loadMatrix, 5000);
 
 </script>
 
