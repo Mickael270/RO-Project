@@ -251,8 +251,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 70px;
-            padding: 10px 15px;
+            min-width: 80px;
+            padding: 12px 18px;
             background: #0f1222;
             border-radius: 40px;
             border: 2px solid #f7768e;
@@ -261,37 +261,41 @@
 
         .path-node .node-name {
             font-family: 'Courier New', monospace;
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #f7768e;
         }
 
         .path-node .node-duration {
             font-family: monospace;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #64f3a6;
             background: rgba(100,243,166,0.15);
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 20px;
-            margin-top: 4px;
+            margin-top: 6px;
         }
 
         .path-arrow {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin: 0 2px;
+            margin: 0 5px;
         }
 
         .path-arrow i {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             color: #f7768e;
         }
 
         .path-arrow .duration-label {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
+            font-weight: bold;
             color: #f7768e;
-            margin-top: 2px;
+            margin-top: 3px;
+            background: rgba(247,118,142,0.15);
+            padding: 2px 8px;
+            border-radius: 15px;
         }
 
         .start-node, .end-node {
@@ -365,9 +369,11 @@
 
         @media (max-width: 768px) {
             .uniform-table th, .uniform-table td { padding: 5px 8px; font-size: 0.65rem; }
-            .path-node { min-width: 50px; padding: 6px 10px; }
-            .path-node .node-name { font-size: 0.8rem; }
-            .path-arrow i { font-size: 1.2rem; }
+            .path-node { min-width: 60px; padding: 8px 12px; }
+            .path-node .node-name { font-size: 0.9rem; }
+            .path-node .node-duration { font-size: 0.65rem; }
+            .path-arrow i { font-size: 1.3rem; }
+            .path-arrow .duration-label { font-size: 0.6rem; }
             .tasks-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -377,7 +383,6 @@
 <div class="container">
     <div class="header">
         <h1><i class="fas fa-chart-network"></i> ORDONNANCEMENT Tableau</h1>
-        <!-- <div class="badge">méthode des potentiels · style industriel</div> -->
     </div>
 
     <div id="page1">
@@ -454,7 +459,6 @@
         <div class="result-card">
             <div class="result-header">
                 <h3><i class="fas fa-calendar-day"></i> DATES AU PLUS TÔT</h3>
-                <!-- <div class="badge">début tôt → tâche → fin tôt / antécédent → tâche → durée</div> -->
             </div>
             <div class="result-content">
                 <div id="earliestFlowTable" class="tasks-grid"></div>
@@ -474,7 +478,6 @@
         <div class="result-card">
             <div class="result-header">
                 <h3><i class="fas fa-calendar-week"></i> DATES AU PLUS TARD</h3>
-                <!-- <div class="badge">début tard → tâche → fin tard / antécédent → tâche → durée</div> -->
             </div>
             <div class="result-content">
                 <div id="latestFlowTable" class="tasks-grid"></div>
@@ -632,7 +635,6 @@ async function addTask() {
             else if (name) showNotification(`Tâche "${name}" non trouvée`, true);
         }
         
-        // Générer un ID unique
         const newId = Date.now();
         
         await fetch(API + "/tasks", {
@@ -690,7 +692,6 @@ async function refreshResults() {
     await updateStatsAndChart();
 }
 
-// Rendu des blocs DATES AU PLUS TÔT
 async function renderEarliestFlowTable() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
@@ -719,7 +720,7 @@ async function renderEarliestFlowTable() {
             task.dependances.forEach(depId => {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
-                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
+                    html += `<td><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
                 }
             });
         }
@@ -739,7 +740,6 @@ async function renderEarliestFlowTable() {
     container.appendChild(endBlock);
 }
 
-// Rendu des blocs DATES AU PLUS TARD
 async function renderLatestFlowTable() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
@@ -819,12 +819,13 @@ async function renderLatestFlowTable() {
     }
 }
 
-// Rendu du chemin critique : tableaux + graphe simplifié (juste nom et durée)
+// Rendu du chemin critique avec graphe
+// Flèche DÉBUT->A : 0 | Nœud A : date_tot | Flèche A->B : durée de A | Nœud B : date_tot de B
 async function renderCriticalPath() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
     
-    // Construction des parents critiques
+    // Construction des parents critiques (chemin le plus long)
     const criticalParents = {};
     for (const task of tasks) {
         if (task.dependances.length === 0) {
@@ -843,6 +844,7 @@ async function renderCriticalPath() {
         }
     }
     
+    // Dernière tâche
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
@@ -853,6 +855,7 @@ async function renderCriticalPath() {
         if (val > maxEnd) { maxEnd = val; bestLast = t.nom; }
     }
     
+    // Ensemble des tâches critiques
     let criticalSet = new Set();
     let current = bestLast;
     while (current && current !== "DEBUT") {
@@ -902,7 +905,7 @@ async function renderCriticalPath() {
     endBlock.innerHTML = endHtml;
     container.appendChild(endBlock);
     
-    // ===== GRAPHE SIMPLIFIÉ (uniquement nom et durée, comme dans l'image) =====
+    // ===== GRAPHE CHEMIN CRITIQUE =====
     const graphContainer = document.getElementById("criticalGraph");
     if (!graphContainer) return;
     
@@ -921,7 +924,7 @@ async function renderCriticalPath() {
     
     let graphHtml = "";
     
-    // Nœud DEBUT
+    // Nœud DÉBUT
     graphHtml += `<div class="path-node start-node">
                     <div class="node-name">DÉBUT</div>
                     <div class="node-duration">0</div>
@@ -931,23 +934,35 @@ async function renderCriticalPath() {
         const t = tasks.find(x => x.nom === orderedPath[i]);
         if (!t) continue;
         
-        // Flèche avec durée
+        // Durée sur la flèche :
+        // - Si première tâche (i=0) : flèche DÉBUT->A : 0
+        // - Sinon : durée de la tâche précédente
+        let arrowDuration = 0;
+        if (i > 0) {
+            const prevTask = tasks.find(x => x.nom === orderedPath[i-1]);
+            arrowDuration = prevTask ? prevTask.duree : 0;
+        }
+        
+        // Flèche
         graphHtml += `<div class="path-arrow">
                         <i class="fas fa-long-arrow-alt-right"></i>
-                        <span class="duration-label">${t.duree}</span>
+                        <span class="duration-label">${arrowDuration}</span>
                       </div>`;
         
-        // Nœud tâche
+        // Nœud tâche : affiche la date au plus tôt
         graphHtml += `<div class="path-node">
                         <div class="node-name">${t.nom}</div>
-                        <div class="node-duration">${t.duree}</div>
+                        <div class="node-duration">${t.date_plus_tot}</div>
                       </div>`;
     }
     
-    // Flèche vers FIN
+    // Dernière flèche vers FIN avec la durée de la dernière tâche
+    const lastTask = tasks.find(x => x.nom === orderedPath[orderedPath.length-1]);
+    const lastDuration = lastTask ? lastTask.duree : 0;
+    
     graphHtml += `<div class="path-arrow">
                     <i class="fas fa-long-arrow-alt-right"></i>
-                    <span class="duration-label">-</span>
+                    <span class="duration-label">${lastDuration}</span>
                   </div>`;
     
     // Nœud FIN
