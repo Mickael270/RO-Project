@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -156,42 +156,63 @@
             width: 100%;
             border-collapse: collapse;
             font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
         }
 
         .uniform-table th {
             background: #0a0e27;
-            padding: 10px 12px;
+            padding: 12px 12px;
             text-align: center;
             color: #7aa2f7;
-            font-weight: normal;
+            font-weight: bold;
             border: 1px solid #1a1f35;
         }
 
         .uniform-table td {
-            padding: 8px 12px;
+            padding: 10px 12px;
             text-align: center;
             border: 1px solid #1a1f35;
             color: #c0caf5;
         }
 
-        .critical-cell {
-            background: #2a1f2a;
-            color: #f7768e !important;
-            font-weight: bold;
+        .uniform-table tr:hover {
+            background: #1a1f35;
         }
 
-        /* Style bloc tâche */
+        /* Style bloc tâche - 8 tableaux par ligne */
         .tasks-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 12px;
             padding: 5px;
         }
 
+        @media (max-width: 1400px) {
+            .tasks-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            .tasks-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .tasks-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .task-block {
-            display: inline-block;
-            vertical-align: top;
+            display: block;
             margin: 0;
         }
 
@@ -204,12 +225,17 @@
 
         .task-block td {
             border: 1px solid #1a1f35;
-            padding: 8px 12px;
+            padding: 10px 8px;
             text-align: center;
+            font-size: 0.8rem;
+            color: #c0caf5;
         }
 
         .task-block .top-row td {
             background: #0a0e27;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #7aa2f7;
         }
 
         .critical-block {
@@ -232,7 +258,12 @@
             font-weight: bold;
         }
 
-        /* ===== GRAPHE CHEMIN CRITIQUE SIMPLIFIÉ ===== */
+        .split {
+            font-size: 0.75rem;
+            color: #a9b1d6;
+        }
+
+        /* ===== GRAPHE CHEMIN CRITIQUE ===== */
         .critical-path-graph {
             display: flex;
             align-items: center;
@@ -367,14 +398,37 @@
         ::-webkit-scrollbar-track { background: #06080f; }
         ::-webkit-scrollbar-thumb { background: #2a3f5e; }
 
-        @media (max-width: 768px) {
-            .uniform-table th, .uniform-table td { padding: 5px 8px; font-size: 0.65rem; }
-            .path-node { min-width: 60px; padding: 8px 12px; }
-            .path-node .node-name { font-size: 0.9rem; }
-            .path-node .node-duration { font-size: 0.65rem; }
-            .path-arrow i { font-size: 1.3rem; }
-            .path-arrow .duration-label { font-size: 0.6rem; }
-            .tasks-grid { grid-template-columns: 1fr; }
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #f7768e;
+            color: #f7768e;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: #f7768e20;
+            border-color: #f7768e;
+        }
+
+        .editable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .editable:hover {
+            background: #1a1f35;
+        }
+
+        .editable-input {
+            background: #06080f;
+            border: 1px solid #3b82f6;
+            color: #e0e0e0;
+            padding: 4px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            width: 100%;
         }
     </style>
 </head>
@@ -382,7 +436,7 @@
 
 <div class="container">
     <div class="header">
-        <h1><i class="fas fa-chart-network"></i> ORDONNANCEMENT Tableau</h1>
+        <h1><i class="fas fa-chart-network"></i> PERT/CPM - ORDONNANCEMENT DE PROJET</h1>
     </div>
 
     <div id="page1">
@@ -497,7 +551,7 @@ function showNotification(msg, isError = false) {
     const notif = document.getElementById("notif");
     notif.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'}"></i> ${msg}`;
     notif.classList.remove("hidden");
-    setTimeout(() => notif.classList.add("hidden"), 2500);
+    setTimeout(() => notif.classList.add("hidden"), 3000);
 }
 
 async function loadTasks() {
@@ -530,7 +584,15 @@ function renderTasksTable() {
     });
     
     let html = `<table class="uniform-table">
-        <thead><tr><th>NOM</th><th>DURÉE</th><th>ANTÉRIEURES</th><th>SUCCESSEURS</th><th>ACTION</th></tr></thead>
+        <thead>
+            <tr>
+                <th>NOM</th>
+                <th>DURÉE</th>
+                <th>ANTÉRIEURES</th>
+                <th>SUCCESSEURS</th>
+                <th>ACTION</th>
+            </tr>
+        </thead>
         <tbody>`;
     
     for (const task of currentTasks) {
@@ -545,7 +607,7 @@ function renderTasksTable() {
             <td class="editable" data-field="duree" data-value="${task.duree}">${task.duree}</td>
             <td class="editable" data-field="dependances" data-value="${antérieures}">${antérieures}</td>
             <td>${successeursList}</td>
-            <td><button onclick="deleteTask(${task.id}, '${task.nom}')" style="padding:4px 10px;"><i class="fas fa-trash"></i></button></td>
+            <td><button class="delete-btn" onclick="deleteTask(${task.id}, '${task.nom}')"><i class="fas fa-trash"></i> Supprimer</button></td>
         </tr>`;
     }
     
@@ -610,7 +672,7 @@ async function updateTaskField(taskId, field, value) {
         });
         showNotification("Tâche modifiée");
     } catch (error) {
-        showNotification("Erreur", true);
+        showNotification("Erreur lors de la modification", true);
     }
 }
 
@@ -657,7 +719,7 @@ async function addTask() {
         await loadTasks();
         showNotification(`Tâche "${nom}" ajoutée`);
     } catch (error) {
-        showNotification("Erreur", true);
+        showNotification("Erreur lors de l'ajout", true);
     }
 }
 
@@ -682,14 +744,19 @@ function goBack() {
 }
 
 async function refreshResults() {
-    await fetch(API + "/schedule/earliest");
-    await fetch(API + "/schedule/latest");
-    await fetch(API + "/schedule/margins");
-    await loadTasks();
-    await renderEarliestFlowTable();
-    await renderLatestFlowTable();
-    await renderCriticalPath();
-    await updateStatsAndChart();
+    try {
+        await fetch(API + "/schedule/earliest");
+        await fetch(API + "/schedule/latest");
+        await fetch(API + "/schedule/margins");
+        await loadTasks();
+        await renderEarliestFlowTable();
+        await renderLatestFlowTable();
+        await renderCriticalPath();
+        await updateStatsAndChart();
+        showNotification("Calcul terminé");
+    } catch (error) {
+        showNotification("Erreur de calcul", true);
+    }
 }
 
 async function renderEarliestFlowTable() {
@@ -705,37 +772,39 @@ async function renderEarliestFlowTable() {
     const container = document.getElementById("earliestFlowTable");
     container.innerHTML = "";
     
+    // Afficher toutes les tâches
     tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
         const isCritical = task.marge === 0;
         if (isCritical) block.classList.add("critical-block");
         
-        let html = `<table>`;
+        let html = '<table>';
         html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
         
         if (task.dependances.length === 0) {
-            html += `<tr><td class="earliest-bold">0</td><td class="split">DEBUT 0</td></tr>`;
+            html += `<tr><td class="earliest-bold">0</td><td class="split">DÉBUT 0</td></tr>`;
         } else {
             task.dependances.forEach(depId => {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
-                    html += `<td><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
+                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
                 }
             });
         }
-        html += `</table>`;
+        html += '</table>';
         block.innerHTML = html;
         container.appendChild(block);
     });
     
+    // Afficher le bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = '<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN</td></tr>';
     lastTasks.forEach(t => {
         endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}</td><td class="split">${t.nom} ${t.duree}</td></tr>`;
     });
-    endHtml += `</table>`;
+    endHtml += '</table>';
     endBlock.innerHTML = endHtml;
     container.appendChild(endBlock);
 }
@@ -785,24 +854,26 @@ async function renderLatestFlowTable() {
     const container = document.getElementById("latestFlowTable");
     container.innerHTML = "";
     
+    // Afficher le bloc DÉBUT
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
-    let startHtml = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DEBUT</td></tr>`;
+    let startHtml = '<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>';
     const startTasks = tasks.filter(t => t.dependances.length === 0);
     startTasks.forEach(t => {
         startHtml += `<tr><td class="latest-bold">${latestMap[t.nom] ?? 0}</td><td class="split">${t.nom} 0</td></tr>`;
     });
-    startHtml += `</table>`;
+    startHtml += '</table>';
     startBlock.innerHTML = startHtml;
     container.appendChild(startBlock);
     
+    // Afficher toutes les tâches
     for (const task of tasks) {
         const block = document.createElement("div");
         block.className = "task-block";
         const isCritical = task.marge === 0;
         if (isCritical) block.classList.add("critical-block");
         
-        let html = `<table>`;
+        let html = '<table>';
         html += `<tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom] ?? 0}</span> &nbsp; ${task.nom}</td></tr>`;
         
         const successors = successorsMap[task.nom];
@@ -813,19 +884,23 @@ async function renderLatestFlowTable() {
                 html += `<tr><td class="latest-bold">${latestMap[s.nom] ?? 0}</td><td class="split">${s.nom} ${task.duree}</td></tr>`;
             }
         }
-        html += `</table>`;
+        html += '</table>';
         block.innerHTML = html;
         container.appendChild(block);
     }
 }
 
-// Rendu du chemin critique avec graphe
-// Flèche DÉBUT->A : 0 | Nœud A : date_tot | Flèche A->B : durée de A | Nœud B : date_tot de B
 async function renderCriticalPath() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
     
-    // Construction des parents critiques (chemin le plus long)
+    if (tasks.length === 0) {
+        document.getElementById("criticalTable").innerHTML = '<div style="text-align:center;padding:40px;">Aucune tâche</div>';
+        document.getElementById("criticalGraph").innerHTML = '<div style="text-align:center;padding:40px;">Aucune tâche</div>';
+        return;
+    }
+    
+    // Construction des parents critiques
     const criticalParents = {};
     for (const task of tasks) {
         if (task.dependances.length === 0) {
@@ -863,21 +938,21 @@ async function renderCriticalPath() {
         current = criticalParents[current];
     }
     
-    // Tableaux du chemin critique
     const container = document.getElementById("criticalTable");
     container.innerHTML = "";
     
-    for (const task of tasks) {
+    // Afficher toutes les tâches avec mise en évidence des critiques
+    tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
         const isCritical = criticalSet.has(task.nom);
         if (isCritical) block.classList.add("critical-block");
         
-        let html = `<table>`;
+        let html = '<table>';
         html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
         
         if (task.dependances.length === 0) {
-            html += `<tr><td class="earliest-bold">0</td><td class="split ${isCritical ? 'critical-bold' : ''}">DEBUT 0</td></tr>`;
+            html += `<tr><td class="earliest-bold">0</td><td class="split ${isCritical ? 'critical-bold' : ''}">DÉBUT 0</td></tr>`;
         } else {
             for (const depId of task.dependances) {
                 const parent = tasks.find(t => t.id === depId);
@@ -888,28 +963,28 @@ async function renderCriticalPath() {
                 }
             }
         }
-        html += `</table>`;
+        html += '</table>';
         block.innerHTML = html;
         container.appendChild(block);
-    }
+    });
     
+    // Afficher le bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = '<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN</td></tr>';
     for (const t of lastTasks) {
         const isCritical = (t.nom === bestLast);
         endHtml += `<tr><td class="earliest-bold ${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td>
                         <td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td></tr>`;
     }
-    endHtml += `</table>`;
+    endHtml += '</table>';
     endBlock.innerHTML = endHtml;
     container.appendChild(endBlock);
     
-    // ===== GRAPHE CHEMIN CRITIQUE =====
+    // Graphe du chemin critique
     const graphContainer = document.getElementById("criticalGraph");
     if (!graphContainer) return;
     
-    // Construire le chemin ordonné
     let orderedPath = [];
     let node = bestLast;
     while (node && node !== "DEBUT") {
@@ -924,7 +999,6 @@ async function renderCriticalPath() {
     
     let graphHtml = "";
     
-    // Nœud DÉBUT
     graphHtml += `<div class="path-node start-node">
                     <div class="node-name">DÉBUT</div>
                     <div class="node-duration">0</div>
@@ -934,29 +1008,23 @@ async function renderCriticalPath() {
         const t = tasks.find(x => x.nom === orderedPath[i]);
         if (!t) continue;
         
-        // Durée sur la flèche :
-        // - Si première tâche (i=0) : flèche DÉBUT->A : 0
-        // - Sinon : durée de la tâche précédente
         let arrowDuration = 0;
         if (i > 0) {
             const prevTask = tasks.find(x => x.nom === orderedPath[i-1]);
             arrowDuration = prevTask ? prevTask.duree : 0;
         }
         
-        // Flèche
         graphHtml += `<div class="path-arrow">
                         <i class="fas fa-long-arrow-alt-right"></i>
                         <span class="duration-label">${arrowDuration}</span>
                       </div>`;
         
-        // Nœud tâche : affiche la date au plus tôt
         graphHtml += `<div class="path-node">
                         <div class="node-name">${t.nom}</div>
                         <div class="node-duration">${t.date_plus_tot}</div>
                       </div>`;
     }
     
-    // Dernière flèche vers FIN avec la durée de la dernière tâche
     const lastTask = tasks.find(x => x.nom === orderedPath[orderedPath.length-1]);
     const lastDuration = lastTask ? lastTask.duree : 0;
     
@@ -965,7 +1033,6 @@ async function renderCriticalPath() {
                     <span class="duration-label">${lastDuration}</span>
                   </div>`;
     
-    // Nœud FIN
     graphHtml += `<div class="path-node end-node">
                     <div class="node-name">FIN</div>
                     <div class="node-duration">${maxEnd}</div>
