@@ -181,7 +181,7 @@
             font-weight: bold;
         }
 
-        /* Style bloc tâche comme dans l'image */
+        /* Style bloc tâche */
         .tasks-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -232,57 +232,75 @@
             font-weight: bold;
         }
 
-        .flow-graph {
+        /* ===== GRAPHE CHEMIN CRITIQUE SIMPLIFIÉ ===== */
+        .critical-path-graph {
             display: flex;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
             gap: 5px;
-            padding: 20px;
-            background: #06080f;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #06080f 0%, #0a0e27 100%);
+            border-radius: 12px;
             margin-top: 15px;
-            overflow-x: auto;
+            min-height: 140px;
         }
 
-        .graph-node {
-            background: #0f1222;
-            border: 1px solid #2a3f5e;
+        .path-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
             padding: 10px 15px;
-            text-align: center;
-            min-width: 60px;
+            background: #0f1222;
+            border-radius: 40px;
+            border: 2px solid #f7768e;
+            box-shadow: 0 0 12px rgba(247,118,142,0.3);
         }
 
-        .graph-node .node-name {
-            font-family: monospace;
-            font-size: 0.75rem;
+        .path-node .node-name {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
             font-weight: bold;
-            color: #7aa2f7;
+            color: #f7768e;
         }
 
-        .graph-node .node-time {
+        .path-node .node-duration {
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #64f3a6;
+            background: rgba(100,243,166,0.15);
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 4px;
+        }
+
+        .path-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 2px;
+        }
+
+        .path-arrow i {
+            font-size: 1.6rem;
+            color: #f7768e;
+        }
+
+        .path-arrow .duration-label {
             font-size: 0.65rem;
-            color: #565f89;
-        }
-
-        .graph-arrow {
-            color: #2a3f5e;
-            font-size: 1.2rem;
-            margin: 0 -5px;
-        }
-
-        .graph-arrow .duration {
-            font-size: 0.6rem;
             color: #f7768e;
-            text-align: center;
+            margin-top: 2px;
         }
 
-        .critical-node {
-            border-color: #f7768e;
-            background: #1a1525;
+        .start-node, .end-node {
+            border-color: #64f3a6;
+            box-shadow: 0 0 12px rgba(100,243,166,0.3);
         }
 
-        .critical-node .node-name {
-            color: #f7768e;
+        .start-node .node-name, .end-node .node-name {
+            color: #64f3a6;
         }
 
         .stats-row {
@@ -347,7 +365,9 @@
 
         @media (max-width: 768px) {
             .uniform-table th, .uniform-table td { padding: 5px 8px; font-size: 0.65rem; }
-            .graph-node { padding: 5px 10px; min-width: 45px; }
+            .path-node { min-width: 50px; padding: 6px 10px; }
+            .path-node .node-name { font-size: 0.8rem; }
+            .path-arrow i { font-size: 1.2rem; }
             .tasks-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -365,12 +385,8 @@
             <h3><i class="fas fa-plus"></i> NOUVELLE TÂCHE</h3>
             <div class="input-group">
                 <div class="input-field">
-                    <label>ID</label>
-                    <input type="number" id="id" placeholder="ID">
-                </div>
-                <div class="input-field">
                     <label>NOM</label>
-                    <input type="text" id="nom" placeholder="Tâche">
+                    <input type="text" id="nom" placeholder="Tâche (ex: A, B, C)">
                 </div>
                 <div class="input-field">
                     <label>DURÉE (j)</label>
@@ -438,7 +454,7 @@
         <div class="result-card">
             <div class="result-header">
                 <h3><i class="fas fa-calendar-day"></i> DATES AU PLUS TÔT</h3>
-                <div class="badge">format : début tôt → tâche → fin tôt / antécédent → tâche → durée</div>
+                <div class="badge">début tôt → tâche → fin tôt / antécédent → tâche → durée</div>
             </div>
             <div class="result-content">
                 <div id="earliestFlowTable" class="tasks-grid"></div>
@@ -450,15 +466,15 @@
                 <h3><i class="fas fa-road"></i> CHEMIN CRITIQUE</h3>
             </div>
             <div class="result-content">
-                <div id="criticalTable"></div>
-                <div id="criticalGraph" class="flow-graph"></div>
+                <div id="criticalTable" class="tasks-grid"></div>
+                <div id="criticalGraph" class="critical-path-graph"></div>
             </div>
         </div>
 
         <div class="result-card">
             <div class="result-header">
                 <h3><i class="fas fa-calendar-week"></i> DATES AU PLUS TARD</h3>
-                <div class="badge">format : début tard → tâche → fin tard / antécédent → tâche → durée</div>
+                <div class="badge">début tard → tâche → fin tard / antécédent → tâche → durée</div>
             </div>
             <div class="result-content">
                 <div id="latestFlowTable" class="tasks-grid"></div>
@@ -511,7 +527,7 @@ function renderTasksTable() {
     });
     
     let html = `<table class="uniform-table">
-        <thead><tr><th>ID</th><th>NOM</th><th>DURÉE</th><th>ANTÉRIEURES</th><th>SUCCESSEURS</th><th>ACTION</th></tr></thead>
+        <thead><tr><th>NOM</th><th>DURÉE</th><th>ANTÉRIEURES</th><th>SUCCESSEURS</th><th>ACTION</th></tr></thead>
         <tbody>`;
     
     for (const task of currentTasks) {
@@ -521,8 +537,7 @@ function renderTasksTable() {
         }).filter(n => n).join(", ") || "-";
         const successeursList = successors[task.nom].join(", ") || "FIN";
         
-        html += `<tr data-id="${task.id}">
-            <td>${task.id}</td>
+        html += `<tr data-id="${task.id}" data-nom="${task.nom}">
             <td class="editable" data-field="nom" data-value="${task.nom}">${task.nom}</td>
             <td class="editable" data-field="duree" data-value="${task.duree}">${task.duree}</td>
             <td class="editable" data-field="dependances" data-value="${antérieures}">${antérieures}</td>
@@ -597,23 +612,17 @@ async function updateTaskField(taskId, field, value) {
 }
 
 async function addTask() {
-    const id = parseInt(document.getElementById("id").value);
     const nom = document.getElementById("nom").value.trim();
     const duree = parseInt(document.getElementById("duree").value);
     
-    if (!id || !nom || isNaN(duree)) {
-        showNotification("ID, Nom et durée requis", true);
+    if (!nom || isNaN(duree)) {
+        showNotification("Nom et durée requis", true);
         return;
     }
     
     try {
         const res = await fetch(API + "/tasks");
         const existingTasks = await res.json();
-        
-        if (existingTasks.some(t => t.id === id)) {
-            showNotification("ID déjà existant", true);
-            return;
-        }
         
         const depNames = document.getElementById("dependances").value.split(",").map(s => s.trim()).filter(s => s);
         const dependances = [];
@@ -623,11 +632,14 @@ async function addTask() {
             else if (name) showNotification(`Tâche "${name}" non trouvée`, true);
         }
         
+        // Générer un ID unique
+        const newId = Date.now();
+        
         await fetch(API + "/tasks", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                id: id,
+                id: newId,
                 nom: nom,
                 duree: duree,
                 dependances: dependances,
@@ -637,7 +649,6 @@ async function addTask() {
             })
         });
         
-        document.getElementById("id").value = "";
         document.getElementById("nom").value = "";
         document.getElementById("duree").value = "";
         document.getElementById("dependances").value = "";
@@ -675,16 +686,15 @@ async function refreshResults() {
     await loadTasks();
     await renderEarliestFlowTable();
     await renderLatestFlowTable();
-    await renderCriticalTable();
+    await renderCriticalPath();
     await updateStatsAndChart();
 }
 
-// Rendu des blocs DATES AU PLUS TÔT (style image)
+// Rendu des blocs DATES AU PLUS TÔT
 async function renderEarliestFlowTable() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
     
-    // Calcul des tâches finales
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
@@ -694,7 +704,6 @@ async function renderEarliestFlowTable() {
     const container = document.getElementById("earliestFlowTable");
     container.innerHTML = "";
     
-    // Affichage pour chaque tâche
     tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
@@ -702,10 +711,7 @@ async function renderEarliestFlowTable() {
         if (isCritical) block.classList.add("critical-block");
         
         let html = `<table>`;
-        // Ligne supérieure: début tôt et tâche
-        html += `<tr class="top-row">
-                    <td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td>
-                 </tr>`;
+        html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
         
         if (task.dependances.length === 0) {
             html += `<tr><td class="earliest-bold">0</td><td class="split">DEBUT 0</td></tr>`;
@@ -713,10 +719,7 @@ async function renderEarliestFlowTable() {
             task.dependances.forEach(depId => {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
-                    html += `<tr>
-                                <td class="earliest-bold">${parent.date_plus_tot}</td>
-                                <td class="split">${parent.nom} ${parent.duree}</td>
-                             </tr>`;
+                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
                 }
             });
         }
@@ -725,11 +728,9 @@ async function renderEarliestFlowTable() {
         container.appendChild(block);
     });
     
-    // Bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<table>
-                    <tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
     lastTasks.forEach(t => {
         endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}</td><td class="split">${t.nom} ${t.duree}</td></tr>`;
     });
@@ -738,12 +739,11 @@ async function renderEarliestFlowTable() {
     container.appendChild(endBlock);
 }
 
-// Rendu des blocs DATES AU PLUS TARD (style image)
+// Rendu des blocs DATES AU PLUS TARD
 async function renderLatestFlowTable() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
     
-    // Construction des successeurs
     let successorsMap = {};
     tasks.forEach(t => successorsMap[t.nom] = []);
     tasks.forEach(task => {
@@ -753,14 +753,12 @@ async function renderLatestFlowTable() {
         });
     });
     
-    // Tâches finales et durée projet
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
     let maxEnd = 0;
     lastTasks.forEach(t => { const end = t.date_plus_tot + t.duree; if (end > maxEnd) maxEnd = end; });
     
-    // Calcul des dates au plus tard
     let latestMap = {};
     lastTasks.forEach(t => { latestMap[t.nom] = maxEnd - t.duree; });
     
@@ -782,20 +780,14 @@ async function renderLatestFlowTable() {
             }
         }
     }
-    
-    // Ajustement pour les tâches sans successeurs
-    for (const task of tasks) {
-        if (latestMap[task.nom] === undefined) latestMap[task.nom] = 0;
-    }
+    for (const task of tasks) if (latestMap[task.nom] === undefined) latestMap[task.nom] = 0;
     
     const container = document.getElementById("latestFlowTable");
     container.innerHTML = "";
     
-    // Bloc DEBUT
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
-    let startHtml = `<table>
-                        <tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DEBUT</td></tr>`;
+    let startHtml = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DEBUT</td></tr>`;
     const startTasks = tasks.filter(t => t.dependances.length === 0);
     startTasks.forEach(t => {
         startHtml += `<tr><td class="latest-bold">${latestMap[t.nom] ?? 0}</td><td class="split">${t.nom} 0</td></tr>`;
@@ -804,7 +796,6 @@ async function renderLatestFlowTable() {
     startBlock.innerHTML = startHtml;
     container.appendChild(startBlock);
     
-    // Bloc pour chaque tâche
     for (const task of tasks) {
         const block = document.createElement("div");
         block.className = "task-block";
@@ -819,10 +810,7 @@ async function renderLatestFlowTable() {
             html += `<tr><td class="latest-bold">${maxEnd}</td><td class="split">FIN ${task.duree}</td></tr>`;
         } else {
             for (const s of successors) {
-                html += `<tr>
-                            <td class="latest-bold">${latestMap[s.nom] ?? 0}</td>
-                            <td class="split">${s.nom} ${task.duree}</td>
-                         </tr>`;
+                html += `<tr><td class="latest-bold">${latestMap[s.nom] ?? 0}</td><td class="split">${s.nom} ${task.duree}</td></tr>`;
             }
         }
         html += `</table>`;
@@ -831,8 +819,8 @@ async function renderLatestFlowTable() {
     }
 }
 
-// Trouver le chemin critique et afficher les tableaux
-async function renderCriticalTable() {
+// Rendu du chemin critique : tableaux + graphe simplifié (juste nom et durée)
+async function renderCriticalPath() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
     
@@ -848,17 +836,13 @@ async function renderCriticalTable() {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
                     const val = parent.date_plus_tot + parent.duree;
-                    if (val > maxVal) {
-                        maxVal = val;
-                        bestParent = parent.nom;
-                    }
+                    if (val > maxVal) { maxVal = val; bestParent = parent.nom; }
                 }
             }
             criticalParents[task.nom] = bestParent;
         }
     }
     
-    // Tâches finales et fin de projet
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
@@ -869,7 +853,6 @@ async function renderCriticalTable() {
         if (val > maxEnd) { maxEnd = val; bestLast = t.nom; }
     }
     
-    // Ensemble des tâches critiques
     let criticalSet = new Set();
     let current = bestLast;
     while (current && current !== "DEBUT") {
@@ -877,10 +860,10 @@ async function renderCriticalTable() {
         current = criticalParents[current];
     }
     
+    // Tableaux du chemin critique
     const container = document.getElementById("criticalTable");
     container.innerHTML = "";
     
-    // Affichage des blocs critiques pour chaque tâche
     for (const task of tasks) {
         const block = document.createElement("div");
         block.className = "task-block";
@@ -897,10 +880,8 @@ async function renderCriticalTable() {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
                     const isCriticalLink = criticalParents[task.nom] === parent.nom && criticalSet.has(task.nom);
-                    html += `<tr>
-                                <td class="earliest-bold ${isCriticalLink ? 'critical-bold' : ''}">${parent.date_plus_tot}</td>
-                                <td class="split ${isCriticalLink ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}</td>
-                             </tr>`;
+                    html += `<tr><td class="earliest-bold ${isCriticalLink ? 'critical-bold' : ''}">${parent.date_plus_tot}</td>
+                                 <td class="split ${isCriticalLink ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}</td></tr>`;
                 }
             }
         }
@@ -909,57 +890,73 @@ async function renderCriticalTable() {
         container.appendChild(block);
     }
     
-    // Bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<table>
-                    <tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
     for (const t of lastTasks) {
         const isCritical = (t.nom === bestLast);
-        endHtml += `<tr>
-                        <td class="earliest-bold ${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td>
-                        <td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td>
-                     </tr>`;
+        endHtml += `<tr><td class="earliest-bold ${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td>
+                        <td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td></tr>`;
     }
     endHtml += `</table>`;
     endBlock.innerHTML = endHtml;
     container.appendChild(endBlock);
     
-    // Affichage texte du chemin critique
-    let path = [];
+    // ===== GRAPHE SIMPLIFIÉ (uniquement nom et durée, comme dans l'image) =====
+    const graphContainer = document.getElementById("criticalGraph");
+    if (!graphContainer) return;
+    
+    // Construire le chemin ordonné
+    let orderedPath = [];
     let node = bestLast;
     while (node && node !== "DEBUT") {
-        path.unshift(node);
+        orderedPath.unshift(node);
         node = criticalParents[node];
     }
-    const pathDiv = document.createElement("div");
-    pathDiv.style.marginTop = "20px";
-    pathDiv.style.padding = "15px";
-    pathDiv.style.background = "#06080f";
-    pathDiv.style.border = "1px solid #1a1f35";
-    let pathHtml = `<i class="fas fa-route"></i> <strong>CHEMIN CRITIQUE :</strong> `;
-    pathHtml += `<span style="color:#64f3a6">DEBUT(0)</span>`;
-    for (const name of path) {
-        const t = tasks.find(x => x.nom === name);
-        pathHtml += ` <span style="color:#f7768e">→</span> <span style="color:#f7768e">${t.nom}(${t.duree})</span>`;
-    }
-    pathHtml += ` <span style="color:#f7768e">→</span> <span style="color:#64f3a6">FIN(${maxEnd})</span>`;
-    pathDiv.innerHTML = pathHtml;
-    container.appendChild(pathDiv);
     
-    // Graphe visuel simplifié
-    const graphContainer = document.getElementById("criticalGraph");
-    if (graphContainer) {
-        let graphHtml = `<div class="graph-node"><div class="node-name">DEBUT</div><div class="node-time">0</div></div>`;
-        for (let i = 0; i < path.length; i++) {
-            const t = tasks.find(x => x.nom === path[i]);
-            graphHtml += `<div class="graph-arrow"><div class="duration">${t.duree}j</div><i class="fas fa-arrow-right"></i></div>`;
-            graphHtml += `<div class="graph-node critical-node"><div class="node-name">${t.nom}</div><div class="node-time">t=${t.date_plus_tot}</div></div>`;
-        }
-        graphHtml += `<div class="graph-arrow"><div class="duration">-</div><i class="fas fa-arrow-right"></i></div>`;
-        graphHtml += `<div class="graph-node critical-node"><div class="node-name">FIN</div><div class="node-time">${maxEnd}</div></div>`;
-        graphContainer.innerHTML = graphHtml;
+    if (orderedPath.length === 0) {
+        graphContainer.innerHTML = '<div style="color:#565f89; text-align:center;">Aucun chemin critique identifié</div>';
+        return;
     }
+    
+    let graphHtml = "";
+    
+    // Nœud DEBUT
+    graphHtml += `<div class="path-node start-node">
+                    <div class="node-name">DÉBUT</div>
+                    <div class="node-duration">0</div>
+                  </div>`;
+    
+    for (let i = 0; i < orderedPath.length; i++) {
+        const t = tasks.find(x => x.nom === orderedPath[i]);
+        if (!t) continue;
+        
+        // Flèche avec durée
+        graphHtml += `<div class="path-arrow">
+                        <i class="fas fa-long-arrow-alt-right"></i>
+                        <span class="duration-label">${t.duree}</span>
+                      </div>`;
+        
+        // Nœud tâche
+        graphHtml += `<div class="path-node">
+                        <div class="node-name">${t.nom}</div>
+                        <div class="node-duration">${t.duree}</div>
+                      </div>`;
+    }
+    
+    // Flèche vers FIN
+    graphHtml += `<div class="path-arrow">
+                    <i class="fas fa-long-arrow-alt-right"></i>
+                    <span class="duration-label">-</span>
+                  </div>`;
+    
+    // Nœud FIN
+    graphHtml += `<div class="path-node end-node">
+                    <div class="node-name">FIN</div>
+                    <div class="node-duration">${maxEnd}</div>
+                  </div>`;
+    
+    graphContainer.innerHTML = graphHtml;
 }
 
 function getProjectEnd(tasks) {
