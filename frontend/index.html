@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>PERT/CPM - Ordonnancement de Projet</title>
@@ -10,62 +10,278 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
+        /* ========== BASE STYLES ========== */
         body {
             font-family: 'Courier New', 'Fira Code', 'Segoe UI', monospace;
-            background: #0a0e27;
-            color: #e0e0e0;
             padding: 20px;
+            min-height: 100vh;
         }
 
+        /* ========== DARK MODE (défaut) ========== */
+        body.dark {
+            background: #0a0e27;
+            color: #e0e0e0;
+        }
+        body.dark .input-panel,
+        body.dark .result-card,
+        body.dark .task-block table,
+        body.dark .path-node,
+        body.dark .notif,
+        body.dark .stat-item,
+        body.dark .chart-box {
+            background: #0f1222;
+            border-color: #1a1f35;
+        }
+        body.dark .result-header {
+            background: linear-gradient(135deg, #0a0e27 0%, #0f1222 100%);
+        }
+        body.dark .uniform-table th,
+        body.dark .task-block .top-row td {
+            background: #0a0e27;
+            color: #7aa2f7;
+        }
+        body.dark .uniform-table td,
+        body.dark .task-block td {
+            border-color: #1a1f35;
+            color: #c0caf5;
+        }
+        body.dark input, body.dark select {
+            background: #06080f;
+            border-color: #1a1f35;
+            color: #e0e0e0;
+        }
+        body.dark button {
+            border-color: #2a3f5e;
+            color: #7aa2f7;
+        }
+        body.dark button:hover {
+            background: #1a1f35;
+            border-color: #3b82f6;
+        }
+        body.dark .critical-block {
+            border-color: #f7768e !important;
+            background: #1a1520;
+        }
+        body.dark .split {
+            color: #a9b1d6;
+        }
+        body.dark .critical-path-graph {
+            background: linear-gradient(135deg, #06080f 0%, #0a0e27 100%);
+            border: 1px solid #f7768e30;
+        }
+        body.dark .path-arrow i {
+            color: #f7768e;
+        }
+
+        /* ========== LIGHT MODE ========== */
+        body.light {
+            background: #f0f2f5;
+            color: #1e293b;
+        }
+        body.light .input-panel,
+        body.light .result-card,
+        body.light .task-block table,
+        body.light .path-node,
+        body.light .notif,
+        body.light .stat-item,
+        body.light .chart-box {
+            background: #ffffff;
+            border-color: #cbd5e1;
+        }
+        body.light .result-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+        }
+        body.light .earliest-header {
+            border-bottom-color: #059669;
+            box-shadow: 0 0 15px rgba(5,150,105,0.15);
+        }
+        body.light .earliest-header h3 {
+            color: #059669;
+            text-shadow: 0 0 5px rgba(5,150,105,0.3);
+        }
+        body.light .critical-header {
+            border-bottom-color: #dc2626;
+            box-shadow: 0 0 15px rgba(220,38,38,0.15);
+        }
+        body.light .critical-header h3 {
+            color: #dc2626;
+            text-shadow: 0 0 5px rgba(220,38,38,0.3);
+        }
+        body.light .latest-header {
+            border-bottom-color: #7c3aed;
+            box-shadow: 0 0 15px rgba(124,58,237,0.15);
+        }
+        body.light .latest-header h3 {
+            color: #7c3aed;
+            text-shadow: 0 0 5px rgba(124,58,237,0.3);
+        }
+        body.light .uniform-table th,
+        body.light .task-block .top-row td {
+            background: #e2e8f0;
+            color: #1e40af;
+        }
+        body.light .uniform-table td,
+        body.light .task-block td {
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+        body.light input, body.light select {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        body.light button {
+            border-color: #94a3b8;
+            color: #1e40af;
+        }
+        body.light button:hover {
+            background: #e2e8f0;
+            border-color: #3b82f6;
+        }
+        body.light .critical-block {
+            border-color: #dc2626 !important;
+            background: #fee2e2;
+        }
+        body.light .critical-bold {
+            color: #dc2626 !important;
+        }
+        body.light .earliest-bold {
+            color: #059669 !important;
+        }
+        body.light .latest-bold {
+            color: #7c3aed !important;
+        }
+        body.light .split {
+            color: #64748b;
+        }
+        body.light .path-node {
+            background: #ffffff;
+            border-color: #dc2626;
+        }
+        body.light .path-node .node-name {
+            color: #dc2626;
+        }
+        body.light .start-node, body.light .end-node {
+            border-color: #059669;
+        }
+        body.light .start-node .node-name, body.light .end-node .node-name {
+            color: #059669;
+        }
+        body.light .notif {
+            background: #ffffff;
+            border-left-color: #3b82f6;
+            color: #1e293b;
+        }
+        body.light .critical-path-graph {
+            background: #f1f5f9;
+            border: 1px solid #dc262630;
+        }
+        body.light .path-arrow i {
+            color: #dc2626;
+        }
+        body.light .delete-btn {
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        body.light .delete-btn:hover {
+            background: #fee2e2;
+        }
+        body.light .editable:hover {
+            background: #e2e8f0;
+        }
+
+        /* ========== LAYOUT COMMUN ========== */
         .container {
             max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
-            border-bottom: 2px solid #2a3f5e;
+            border-bottom: 2px solid;
             padding-bottom: 15px;
             margin-bottom: 25px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             flex-wrap: wrap;
         }
+        body.dark .header { border-bottom-color: #2a3f5e; }
+        body.light .header { border-bottom-color: #cbd5e1; }
 
         .header h1 {
             font-size: 1.3rem;
-            font-weight: normal;
             letter-spacing: 2px;
-            color: #7aa2f7;
         }
+        body.dark .header h1 { color: #7aa2f7; }
+        body.light .header h1 { color: #1e40af; }
 
-        .header h1 i {
-            color: #3b82f6;
-            margin-right: 8px;
+        /* Theme Toggle Switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-
-        .header .badge {
-            font-size: 0.75rem;
-            color: #565f89;
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 28px;
         }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3b82f6;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider:before {
+            transform: translateX(32px);
+        }
+        .fa-sun, .fa-moon {
+            font-size: 1.2rem;
+        }
+        body.dark .fa-sun { color: #fbbf24; }
+        body.light .fa-moon { color: #64748b; }
 
         .input-panel {
-            background: #0f1222;
-            border: 1px solid #1a1f35;
+            border: 1px solid;
             padding: 20px;
             margin-bottom: 25px;
+            border-radius: 8px;
         }
 
         .input-panel h3 {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 2px;
-            color: #7aa2f7;
             margin-bottom: 15px;
             font-weight: normal;
         }
+        body.dark .input-panel h3 { color: #7aa2f7; }
+        body.light .input-panel h3 { color: #1e40af; }
 
         .input-group {
             display: flex;
@@ -83,90 +299,53 @@
             display: block;
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: #565f89;
-            margin-bottom: 5px;
             letter-spacing: 1px;
+            margin-bottom: 5px;
         }
+        body.dark .input-field label { color: #565f89; }
+        body.light .input-field label { color: #64748b; }
 
         input, select {
             width: 100%;
-            background: #06080f;
-            border: 1px solid #1a1f35;
             padding: 8px 12px;
-            color: #e0e0e0;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
             outline: none;
-        }
-
-        input:focus, select:focus {
-            border-color: #3b82f6;
+            border-radius: 6px;
         }
 
         button {
             background: transparent;
-            border: 1px solid #2a3f5e;
-            color: #7aa2f7;
             padding: 8px 20px;
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
-        }
-
-        button:hover {
-            background: #1a1f35;
-            border-color: #3b82f6;
+            border-radius: 6px;
         }
 
         .btn-primary {
             background: #1a1f35;
             border-color: #3b82f6;
         }
+        body.light .btn-primary {
+            background: #e2e8f0;
+        }
 
         .result-card {
-            background: #0f1222;
-            border: 1px solid #1a1f35;
+            border: 1px solid;
             margin-bottom: 30px;
             border-radius: 8px;
             overflow: hidden;
         }
 
         .result-header {
-            background: linear-gradient(135deg, #0a0e27 0%, #0f1222 100%);
             padding: 15px 25px;
             border-bottom: 2px solid;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-        }
-
-        .earliest-header {
-            border-bottom-color: #64f3a6;
-            box-shadow: 0 0 15px rgba(100,243,166,0.2);
-        }
-        .earliest-header h3 {
-            color: #64f3a6;
-            text-shadow: 0 0 10px rgba(100,243,166,0.5);
-        }
-
-        .critical-header {
-            border-bottom-color: #f7768e;
-            box-shadow: 0 0 15px rgba(247,118,142,0.2);
-        }
-        .critical-header h3 {
-            color: #f7768e;
-            text-shadow: 0 0 10px rgba(247,118,142,0.5);
-        }
-
-        .latest-header {
-            border-bottom-color: #bb9af7;
-            box-shadow: 0 0 15px rgba(187,154,247,0.2);
-        }
-        .latest-header h3 {
-            color: #bb9af7;
-            text-shadow: 0 0 10px rgba(187,154,247,0.5);
         }
 
         .result-header h3 {
@@ -192,23 +371,20 @@
         }
 
         .uniform-table th {
-            background: #0a0e27;
             padding: 12px 12px;
             text-align: center;
-            color: #7aa2f7;
             font-weight: bold;
-            border: 1px solid #1a1f35;
+            border: 1px solid;
         }
 
         .uniform-table td {
             padding: 10px 12px;
             text-align: center;
-            border: 1px solid #1a1f35;
-            color: #c0caf5;
+            border: 1px solid;
         }
 
         .uniform-table tr:hover {
-            background: #1a1f35;
+            background: rgba(100, 243, 166, 0.1);
         }
 
         .tasks-grid {
@@ -218,29 +394,10 @@
             padding: 5px;
         }
 
-        @media (max-width: 1400px) {
-            .tasks-grid {
-                grid-template-columns: repeat(6, 1fr);
-            }
-        }
-
-        @media (max-width: 1100px) {
-            .tasks-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        @media (max-width: 800px) {
-            .tasks-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 500px) {
-            .tasks-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        @media (max-width: 1400px) { .tasks-grid { grid-template-columns: repeat(6, 1fr); } }
+        @media (max-width: 1100px) { .tasks-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 800px) { .tasks-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .tasks-grid { grid-template-columns: 1fr; } }
 
         .task-block {
             display: block;
@@ -250,53 +407,40 @@
         .task-block table {
             border-collapse: collapse;
             width: 100%;
-            background: #0f1222;
-            border: 2px solid #1a1f35;
+            border: 2px solid;
             border-radius: 6px;
             overflow: hidden;
         }
 
         .task-block td {
-            border: 1px solid #1a1f35;
+            border: 1px solid;
             padding: 10px 8px;
             text-align: center;
             font-size: 0.8rem;
-            color: #c0caf5;
         }
 
         .task-block .top-row td {
-            background: #0a0e27;
             font-size: 0.85rem;
             font-weight: bold;
         }
 
         .critical-block {
-            border: 2px solid #f7768e !important;
+            border: 2px solid !important;
             box-shadow: 0 0 12px rgba(247,118,142,0.3);
-            background: #1a1520;
         }
 
         .critical-bold {
-            color: #f7768e !important;
             font-weight: bold;
-            text-shadow: 0 0 5px rgba(247,118,142,0.3);
+            text-shadow: 0 0 5px currentColor;
         }
 
-        .latest-bold {
-            color: #bb9af7 !important;
+        .latest-bold, .earliest-bold {
             font-weight: bold;
-            text-shadow: 0 0 5px rgba(187,154,247,0.3);
-        }
-
-        .earliest-bold {
-            color: #64f3a6 !important;
-            font-weight: bold;
-            text-shadow: 0 0 5px rgba(100,243,166,0.3);
+            text-shadow: 0 0 5px currentColor;
         }
 
         .split {
             font-size: 0.75rem;
-            color: #a9b1d6;
         }
 
         .critical-path-graph {
@@ -306,10 +450,8 @@
             flex-wrap: wrap;
             gap: 5px;
             padding: 30px 20px;
-            background: linear-gradient(135deg, #06080f 0%, #0a0e27 100%);
             border-radius: 12px;
             margin-top: 20px;
-            border: 1px solid #f7768e30;
         }
 
         .path-node {
@@ -319,23 +461,21 @@
             justify-content: center;
             min-width: 80px;
             padding: 12px 18px;
-            background: #0f1222;
             border-radius: 40px;
-            border: 2px solid #f7768e;
-            box-shadow: 0 0 15px rgba(247,118,142,0.4);
+            border-width: 2px;
+            border-style: solid;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
         }
 
         .path-node .node-name {
             font-family: 'Courier New', monospace;
             font-size: 1.1rem;
             font-weight: bold;
-            color: #f7768e;
         }
 
         .path-node .node-duration {
             font-family: monospace;
             font-size: 0.75rem;
-            color: #64f3a6;
             background: rgba(100,243,166,0.15);
             padding: 3px 10px;
             border-radius: 20px;
@@ -351,26 +491,15 @@
 
         .path-arrow i {
             font-size: 1.8rem;
-            color: #f7768e;
         }
 
         .path-arrow .duration-label {
             font-size: 0.7rem;
             font-weight: bold;
-            color: #f7768e;
             margin-top: 3px;
-            background: rgba(247,118,142,0.15);
+            background: rgba(0,0,0,0.1);
             padding: 2px 8px;
             border-radius: 15px;
-        }
-
-        .start-node, .end-node {
-            border-color: #64f3a6;
-            box-shadow: 0 0 15px rgba(100,243,166,0.4);
-        }
-
-        .start-node .node-name, .end-node .node-name {
-            color: #64f3a6;
         }
 
         .stats-row {
@@ -382,30 +511,30 @@
 
         .stat-item {
             flex: 1;
-            background: #06080f;
             padding: 15px;
             text-align: center;
-            border: 1px solid #1a1f35;
+            border: 1px solid;
             border-radius: 8px;
         }
 
         .stat-value {
             font-size: 2rem;
             font-family: monospace;
-            color: #7aa2f7;
             font-weight: bold;
         }
+        body.dark .stat-value { color: #7aa2f7; }
+        body.light .stat-value { color: #1e40af; }
 
         .stat-label {
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: #565f89;
             letter-spacing: 1px;
             margin-top: 5px;
         }
+        body.dark .stat-label { color: #565f89; }
+        body.light .stat-label { color: #64748b; }
 
         .chart-box {
-            background: #06080f;
             padding: 15px;
             border-radius: 8px;
         }
@@ -418,13 +547,13 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #0f1222;
             border-left: 3px solid #3b82f6;
             padding: 12px 20px;
             font-size: 0.8rem;
             z-index: 1000;
             animation: slideUp 0.3s ease;
-            border-radius: 4px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         @keyframes slideUp {
@@ -433,9 +562,10 @@
         }
 
         .hidden { display: none; }
-        .nav-buttons { 
-            display: flex; 
-            gap: 15px; 
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
             margin-bottom: 25px;
             justify-content: center;
         }
@@ -446,22 +576,20 @@
         }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #06080f; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #2a3f5e; border-radius: 4px; }
+        ::-webkit-scrollbar-track { border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { border-radius: 4px; }
+        body.dark ::-webkit-scrollbar-track { background: #06080f; }
+        body.dark ::-webkit-scrollbar-thumb { background: #2a3f5e; }
+        body.light ::-webkit-scrollbar-track { background: #e2e8f0; }
+        body.light ::-webkit-scrollbar-thumb { background: #94a3b8; }
 
         .delete-btn {
             background: transparent;
-            border: 1px solid #f7768e;
-            color: #f7768e;
+            border: 1px solid;
             padding: 4px 10px;
             cursor: pointer;
             transition: all 0.2s;
             border-radius: 4px;
-        }
-
-        .delete-btn:hover {
-            background: #f7768e20;
-            border-color: #f7768e;
         }
 
         .editable {
@@ -469,27 +597,38 @@
             transition: background 0.2s;
         }
 
-        .editable:hover {
-            background: #1a1f35;
-        }
-
         .editable-input {
-            background: #06080f;
-            border: 1px solid #3b82f6;
-            color: #e0e0e0;
             padding: 4px 8px;
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
             width: 100%;
             border-radius: 4px;
         }
+        body.dark .editable-input {
+            background: #06080f;
+            border: 1px solid #3b82f6;
+            color: #e0e0e0;
+        }
+        body.light .editable-input {
+            background: #ffffff;
+            border: 1px solid #3b82f6;
+            color: #0f172a;
+        }
     </style>
 </head>
-<body>
+<body class="dark">
 
 <div class="container">
     <div class="header">
         <h1><i class="fas fa-chart-network"></i> PERT/CPM - ORDONNANCEMENT DE PROJET</h1>
+        <div class="theme-switch-wrapper">
+            <i class="fas fa-sun"></i>
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
+            <i class="fas fa-moon"></i>
+        </div>
     </div>
 
     <div id="page1">
@@ -566,7 +705,7 @@
         <div class="result-card">
             <div class="result-header earliest-header">
                 <h3><i class="fas fa-calendar-day"></i> 📅 DATES AU PLUS TÔT</h3>
-                <i class="fas fa-sun" style="color: #64f3a6;"></i>
+                <i class="fas fa-sun"></i>
             </div>
             <div class="result-content">
                 <div id="earliestFlowTable" class="tasks-grid"></div>
@@ -576,7 +715,7 @@
         <div class="result-card">
             <div class="result-header critical-header">
                 <h3><i class="fas fa-road"></i> ⚡ CHEMIN CRITIQUE</h3>
-                <i class="fas fa-bolt" style="color: #f7768e;"></i>
+                <i class="fas fa-bolt"></i>
             </div>
             <div class="result-content">
                 <div id="criticalTable" class="tasks-grid"></div>
@@ -587,7 +726,7 @@
         <div class="result-card">
             <div class="result-header latest-header">
                 <h3><i class="fas fa-calendar-week"></i> 🌙 DATES AU PLUS TARD</h3>
-                <i class="fas fa-moon" style="color: #bb9af7;"></i>
+                <i class="fas fa-moon"></i>
             </div>
             <div class="result-content">
                 <div id="latestFlowTable" class="tasks-grid"></div>
@@ -603,6 +742,42 @@ const API = "http://127.0.0.1:8000";
 let statsChart = null;
 let currentTasks = [];
 
+// ========== THEME TOGGLE ==========
+const toggle = document.getElementById('themeToggle');
+const body = document.body;
+
+if (localStorage.getItem('theme') === 'light') {
+    body.classList.remove('dark');
+    body.classList.add('light');
+    toggle.checked = true;
+} else {
+    body.classList.remove('light');
+    body.classList.add('dark');
+    toggle.checked = false;
+}
+
+toggle.addEventListener('change', () => {
+    if (toggle.checked) {
+        body.classList.remove('dark');
+        body.classList.add('light');
+        localStorage.setItem('theme', 'light');
+    } else {
+        body.classList.remove('light');
+        body.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    }
+    updateChartTheme();
+});
+
+function updateChartTheme() {
+    if (statsChart) {
+        const isLight = body.classList.contains('light');
+        statsChart.options.plugins.legend.labels.color = isLight ? '#1e293b' : '#c0caf5';
+        statsChart.update();
+    }
+}
+
+// ========== NOTIFICATIONS ==========
 function showNotification(msg, isError = false) {
     const notif = document.getElementById("notif");
     notif.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'}"></i> ${msg}`;
@@ -610,6 +785,7 @@ function showNotification(msg, isError = false) {
     setTimeout(() => notif.classList.add("hidden"), 3000);
 }
 
+// ========== GESTION DES TÂCHES ==========
 async function loadTasks() {
     try {
         const res = await fetch(API + "/tasks");
@@ -626,7 +802,7 @@ function renderTasksTable() {
     if (!container) return;
     
     if (currentTasks.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:40px;color:#565f89;">Aucune tâche définie</div>';
+        container.innerHTML = '<div style="text-align:center;padding:40px;">Aucune tâche définie</div>';
         return;
     }
     
@@ -659,7 +835,7 @@ function renderTasksTable() {
         </tr>`;
     }
     
-    html += `</tbody></table>`;
+    html += `</tbody></td>`;
     container.innerHTML = html;
     
     document.querySelectorAll('.editable').forEach(el => {
@@ -807,6 +983,7 @@ async function refreshResults() {
     }
 }
 
+// ========== RENDU DES TABLEAUX ==========
 async function renderEarliestFlowTable() {
     const res = await fetch(API + "/tasks");
     const tasks = await res.json();
@@ -825,28 +1002,28 @@ async function renderEarliestFlowTable() {
         block.className = "task-block";
         
         let html = '<table>';
-        html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
+        html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}<\/td><\/tr>`;
         
         if (task.dependances.length === 0) {
-            html += `<tr><td class="earliest-bold">0</td><td class="split">DÉBUT 0</td></tr>`;
+            html += `<tr><td class="earliest-bold">0<\/td><td class="split">DÉBUT 0<\/td><\/tr>`;
         } else {
             task.dependances.forEach(depId => {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
-                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
+                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}<\/td><td class="split">${parent.nom} ${parent.duree}<\/td><\/tr>`;
                 }
             });
         }
-        html += '</table>';
+        html += '<tr>';
         block.innerHTML = html;
         container.appendChild(block);
     });
     
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = '<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN</td></tr>';
+    let endHtml = '<td><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN<\/td><\/tr>';
     lastTasks.forEach(t => {
-        endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}</td><td class="split">${t.nom} ${t.duree}</td></tr>`;
+        endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}<\/td><td class="split">${t.nom} ${t.duree}<\/td><\/tr>`;
     });
     endHtml += '</table>';
     endBlock.innerHTML = endHtml;
@@ -900,10 +1077,10 @@ async function renderLatestFlowTable() {
     
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
-    let startHtml = '<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>';
+    let startHtml = '<td><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT<\/td><\/tr>';
     const startTasks = tasks.filter(t => t.dependances.length === 0);
     startTasks.forEach(t => {
-        startHtml += `<tr><td class="latest-bold">${latestMap[t.nom] ?? 0}</td><td class="split">${t.nom} 0</td></tr>`;
+        startHtml += `<tr><td class="latest-bold">${latestMap[t.nom] ?? 0}<\/td><td class="split">${t.nom} 0<\/td><\/tr>`;
     });
     startHtml += '</table>';
     startBlock.innerHTML = startHtml;
@@ -913,15 +1090,15 @@ async function renderLatestFlowTable() {
         const block = document.createElement("div");
         block.className = "task-block";
         
-        let html = '<table>';
-        html += `<tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom] ?? 0}</span> &nbsp; ${task.nom}</td></tr>`;
+        let html = '<tr>';
+        html += `<tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom] ?? 0}</span> &nbsp; ${task.nom}<\/td><\/tr>`;
         
         const successors = successorsMap[task.nom];
         if (successors.length === 0) {
-            html += `<tr><td class="latest-bold">${maxEnd}</td><td class="split">FIN ${task.duree}</td></tr>`;
+            html += `<tr><td class="latest-bold">${maxEnd}<\/td><td class="split">FIN ${task.duree}<\/td><\/tr>`;
         } else {
             for (const s of successors) {
-                html += `<tr><td class="latest-bold">${latestMap[s.nom] ?? 0}</td><td class="split">${s.nom} ${task.duree}</td></tr>`;
+                html += `<tr><td class="latest-bold">${latestMap[s.nom] ?? 0}<\/td><td class="split">${s.nom} ${task.duree}<\/td><\/tr>`;
             }
         }
         html += '</table>';
@@ -940,7 +1117,6 @@ async function renderCriticalPath() {
         return;
     }
     
-    // Calcul des parents critiques (le chemin le plus long)
     const criticalParents = {};
     for (const task of tasks) {
         if (task.dependances.length === 0) {
@@ -962,7 +1138,6 @@ async function renderCriticalPath() {
         }
     }
     
-    // Trouver la dernière tâche (celle qui a le plus grand date_plus_tot + duree)
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
@@ -976,7 +1151,6 @@ async function renderCriticalPath() {
         }
     }
     
-    // Ensemble des tâches critiques
     let criticalSet = new Set();
     let current = bestLast;
     while (current && current !== "DEBUT") {
@@ -987,7 +1161,6 @@ async function renderCriticalPath() {
     const container = document.getElementById("criticalTable");
     container.innerHTML = "";
     
-    // Afficher chaque tâche
     tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
@@ -997,7 +1170,6 @@ async function renderCriticalPath() {
         }
         
         let html = '<table>';
-        // Ligne d'en-tête avec le nom et la date
         html += `<tr class="top-row"><td colspan="2">`;
         if (isCritical) {
             html += `<span class="critical-bold">${task.date_plus_tot}</span> &nbsp; <span class="critical-bold">${task.nom}</span>`;
@@ -1006,7 +1178,6 @@ async function renderCriticalPath() {
         }
         html += `<\/td><\/tr>`;
         
-        // Lignes des prédécesseurs
         if (task.dependances.length === 0) {
             html += `<tr><td class="earliest-bold">0<\/td><td class="split">DÉBUT 0<\/td><\/tr>`;
         } else {
@@ -1026,7 +1197,6 @@ async function renderCriticalPath() {
         container.appendChild(block);
     });
     
-    // Bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
     if (bestLast && criticalSet.has(bestLast)) {
@@ -1050,7 +1220,6 @@ async function renderCriticalPath() {
     endBlock.innerHTML = endHtml;
     container.appendChild(endBlock);
     
-    // Graphe du chemin critique
     const graphContainer = document.getElementById("criticalGraph");
     if (!graphContainer) return;
     
@@ -1062,7 +1231,7 @@ async function renderCriticalPath() {
     }
     
     if (orderedPath.length === 0) {
-        graphContainer.innerHTML = '<div style="color:#565f89; text-align:center;">Aucun chemin critique identifié</div>';
+        graphContainer.innerHTML = '<div style="text-align:center;">Aucun chemin critique identifié</div>';
         return;
     }
     
@@ -1134,13 +1303,23 @@ async function updateStatsAndChart() {
     const ctx = document.getElementById('statsChart').getContext('2d');
     if (statsChart) statsChart.destroy();
     
+    const isLight = body.classList.contains('light');
     statsChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Tâches critiques', 'Tâches non critiques'],
             datasets: [{ data: [critical, total - critical], backgroundColor: ['#f7768e', '#3b82f6'], borderWidth: 0 }]
         },
-        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#c0caf5' } } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: isLight ? '#1e293b' : '#c0caf5' }
+                }
+            }
+        }
     });
 }
 
