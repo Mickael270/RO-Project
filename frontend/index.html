@@ -895,7 +895,7 @@ async function renderEarliestFlowTable() {
     // --- Bloc FIN (exactement comme un bloc de tâche) ---
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<tr><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
     for (const t of lastTasks) {
         endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}</td><td class="split">${t.nom} ${t.duree}</td></tr>`;
     }
@@ -953,7 +953,7 @@ async function renderLatestFlowTable() {
     // Bloc DÉBUT
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
-    let startHtml = `</tr><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>`;
+    let startHtml = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>`;
     const startTasks = tasks.filter(t => t.dependances.length === 0);
     for (const t of startTasks) {
         startHtml += `<tr><td class="latest-bold">${latestMap[t.nom]}</td><td class="split">${t.nom} (LS)</td></tr>`;
@@ -966,7 +966,7 @@ async function renderLatestFlowTable() {
     for (const task of tasks) {
         const block = document.createElement("div");
         block.className = "task-block";
-        let html = `<tr><tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom]}</span> ${task.nom}</td></tr>`;
+        let html = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom]}</span> ${task.nom}</td></tr>`;
         const successors = successorsMap[task.nom];
         if (successors.length === 0) {
             html += `<tr><td class="latest-bold">${maxEnd}</td><td class="split">FIN (projet)</td></tr>`;
@@ -983,7 +983,7 @@ async function renderLatestFlowTable() {
     // Bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = `<tr><tr class="top-row"><td colspan="2"><span class="latest-bold">${maxEnd}</span> FIN</td></tr>`;
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">${maxEnd}</span> FIN</td></tr>`;
     for (const t of lastTasks) {
         endHtml += `<tr><td class="latest-bold">${latestMap[t.nom]}</td><td class="split">${t.nom} +${t.duree} = ${latestMap[t.nom]+t.duree}</td></tr>`;
     }
@@ -1038,7 +1038,7 @@ async function renderCriticalPath() {
     // Bloc DÉBUT
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
-    let startHtml = `<td><tr class="top-row"><td colspan="2"><span class="critical-bold">0</span> DÉBUT</td></tr>`;
+    let startHtml = `<table><tr class="top-row"><td colspan="2"><span class="critical-bold">0</span> DÉBUT</td></tr>`;
     const startTasks = tasks.filter(t => t.dependances.length === 0);
     for (const t of startTasks) {
         const isCrit = criticalSet.has(t.nom);
@@ -1054,7 +1054,7 @@ async function renderCriticalPath() {
         block.className = "task-block";
         const isCritical = criticalSet.has(task.nom);
         if (isCritical) block.classList.add("critical-block");
-        let html = `<tr><tr class="top-row"><td colspan="2">`;
+        let html = `<table><tr class="top-row"><td colspan="2">`;
         if (isCritical) html += `<span class="critical-bold">${task.date_plus_tot}</span> <span class="critical-bold">${task.nom}</span>`;
         else html += `<span class="earliest-bold">${task.date_plus_tot}</span> ${task.nom}`;
         html += `</td></tr>`;
@@ -1079,7 +1079,7 @@ async function renderCriticalPath() {
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
     if (bestLast && criticalSet.has(bestLast)) endBlock.classList.add("critical-block");
-    let endHtml = `<tr><tr class="top-row"><td colspan="2">`;
+    let endHtml = `<table><tr class="top-row"><td colspan="2">`;
     if (bestLast && criticalSet.has(bestLast)) endHtml += `<span class="critical-bold">${maxEnd}</span> <span class="critical-bold">FIN</span>`;
     else endHtml += `<span class="earliest-bold">${maxEnd}</span> FIN`;
     endHtml += `</td></tr>`;
