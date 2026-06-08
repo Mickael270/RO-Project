@@ -127,28 +127,60 @@
         .result-card {
             background: #0f1222;
             border: 1px solid #1a1f35;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         .result-header {
-            background: #0a0e27;
-            padding: 12px 20px;
-            border-bottom: 1px solid #1a1f35;
+            background: linear-gradient(135deg, #0a0e27 0%, #0f1222 100%);
+            padding: 15px 25px;
+            border-bottom: 2px solid;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
         }
 
+        .earliest-header {
+            border-bottom-color: #64f3a6;
+            box-shadow: 0 0 15px rgba(100,243,166,0.2);
+        }
+        .earliest-header h3 {
+            color: #64f3a6;
+            text-shadow: 0 0 10px rgba(100,243,166,0.5);
+        }
+
+        .critical-header {
+            border-bottom-color: #f7768e;
+            box-shadow: 0 0 15px rgba(247,118,142,0.2);
+        }
+        .critical-header h3 {
+            color: #f7768e;
+            text-shadow: 0 0 10px rgba(247,118,142,0.5);
+        }
+
+        .latest-header {
+            border-bottom-color: #bb9af7;
+            box-shadow: 0 0 15px rgba(187,154,247,0.2);
+        }
+        .latest-header h3 {
+            color: #bb9af7;
+            text-shadow: 0 0 10px rgba(187,154,247,0.5);
+        }
+
         .result-header h3 {
-            font-size: 0.85rem;
-            font-weight: normal;
+            font-size: 1.1rem;
+            font-weight: bold;
             letter-spacing: 2px;
-            color: #7aa2f7;
+        }
+
+        .result-header i {
+            margin-right: 10px;
         }
 
         .result-content {
-            padding: 20px;
+            padding: 25px;
             overflow-x: auto;
         }
 
@@ -179,11 +211,10 @@
             background: #1a1f35;
         }
 
-        /* Style bloc tâche - 8 tableaux par ligne */
         .tasks-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 12px;
+            gap: 15px;
             padding: 5px;
         }
 
@@ -221,6 +252,8 @@
             width: 100%;
             background: #0f1222;
             border: 2px solid #1a1f35;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
         .task-block td {
@@ -235,27 +268,30 @@
             background: #0a0e27;
             font-size: 0.85rem;
             font-weight: bold;
-            color: #7aa2f7;
         }
 
         .critical-block {
-            border-color: #f7768e !important;
-            box-shadow: 0 0 8px rgba(247,118,142,0.2);
+            border: 2px solid #f7768e !important;
+            box-shadow: 0 0 12px rgba(247,118,142,0.3);
+            background: #1a1520;
         }
 
         .critical-bold {
             color: #f7768e !important;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(247,118,142,0.3);
         }
 
         .latest-bold {
             color: #bb9af7 !important;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(187,154,247,0.3);
         }
 
         .earliest-bold {
             color: #64f3a6 !important;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(100,243,166,0.3);
         }
 
         .split {
@@ -263,7 +299,6 @@
             color: #a9b1d6;
         }
 
-        /* ===== GRAPHE CHEMIN CRITIQUE ===== */
         .critical-path-graph {
             display: flex;
             align-items: center;
@@ -273,8 +308,8 @@
             padding: 30px 20px;
             background: linear-gradient(135deg, #06080f 0%, #0a0e27 100%);
             border-radius: 12px;
-            margin-top: 15px;
-            min-height: 140px;
+            margin-top: 20px;
+            border: 1px solid #f7768e30;
         }
 
         .path-node {
@@ -287,7 +322,7 @@
             background: #0f1222;
             border-radius: 40px;
             border: 2px solid #f7768e;
-            box-shadow: 0 0 12px rgba(247,118,142,0.3);
+            box-shadow: 0 0 15px rgba(247,118,142,0.4);
         }
 
         .path-node .node-name {
@@ -331,7 +366,7 @@
 
         .start-node, .end-node {
             border-color: #64f3a6;
-            box-shadow: 0 0 12px rgba(100,243,166,0.3);
+            box-shadow: 0 0 15px rgba(100,243,166,0.4);
         }
 
         .start-node .node-name, .end-node .node-name {
@@ -348,26 +383,31 @@
         .stat-item {
             flex: 1;
             background: #06080f;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
             border: 1px solid #1a1f35;
+            border-radius: 8px;
         }
 
         .stat-value {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-family: monospace;
             color: #7aa2f7;
+            font-weight: bold;
         }
 
         .stat-label {
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             color: #565f89;
+            letter-spacing: 1px;
+            margin-top: 5px;
         }
 
         .chart-box {
             background: #06080f;
             padding: 15px;
+            border-radius: 8px;
         }
 
         canvas {
@@ -384,6 +424,7 @@
             font-size: 0.8rem;
             z-index: 1000;
             animation: slideUp 0.3s ease;
+            border-radius: 4px;
         }
 
         @keyframes slideUp {
@@ -392,11 +433,21 @@
         }
 
         .hidden { display: none; }
-        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-buttons { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 25px;
+            justify-content: center;
+        }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #06080f; }
-        ::-webkit-scrollbar-thumb { background: #2a3f5e; }
+        .nav-buttons button {
+            padding: 10px 25px;
+            font-size: 0.9rem;
+        }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #06080f; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #2a3f5e; border-radius: 4px; }
 
         .delete-btn {
             background: transparent;
@@ -405,6 +456,7 @@
             padding: 4px 10px;
             cursor: pointer;
             transition: all 0.2s;
+            border-radius: 4px;
         }
 
         .delete-btn:hover {
@@ -429,6 +481,7 @@
             font-family: 'Courier New', monospace;
             font-size: 0.8rem;
             width: 100%;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -487,7 +540,7 @@
 
         <div class="result-card">
             <div class="result-header">
-                <h3><i class="fas fa-chart-simple"></i> STATISTIQUES</h3>
+                <h3><i class="fas fa-chart-simple"></i> STATISTIQUES DU PROJET</h3>
             </div>
             <div class="result-content">
                 <div class="stats-row">
@@ -511,8 +564,9 @@
         </div>
 
         <div class="result-card">
-            <div class="result-header">
-                <h3><i class="fas fa-calendar-day"></i> DATES AU PLUS TÔT</h3>
+            <div class="result-header earliest-header">
+                <h3><i class="fas fa-calendar-day"></i> 📅 DATES AU PLUS TÔT</h3>
+                <i class="fas fa-sun" style="color: #64f3a6;"></i>
             </div>
             <div class="result-content">
                 <div id="earliestFlowTable" class="tasks-grid"></div>
@@ -520,8 +574,9 @@
         </div>
 
         <div class="result-card">
-            <div class="result-header">
-                <h3><i class="fas fa-road"></i> CHEMIN CRITIQUE</h3>
+            <div class="result-header critical-header">
+                <h3><i class="fas fa-road"></i> ⚡ CHEMIN CRITIQUE</h3>
+                <i class="fas fa-bolt" style="color: #f7768e;"></i>
             </div>
             <div class="result-content">
                 <div id="criticalTable" class="tasks-grid"></div>
@@ -530,8 +585,9 @@
         </div>
 
         <div class="result-card">
-            <div class="result-header">
-                <h3><i class="fas fa-calendar-week"></i> DATES AU PLUS TARD</h3>
+            <div class="result-header latest-header">
+                <h3><i class="fas fa-calendar-week"></i> 🌙 DATES AU PLUS TARD</h3>
+                <i class="fas fa-moon" style="color: #bb9af7;"></i>
             </div>
             <div class="result-content">
                 <div id="latestFlowTable" class="tasks-grid"></div>
@@ -584,15 +640,7 @@ function renderTasksTable() {
     });
     
     let html = `<table class="uniform-table">
-        <thead>
-            <tr>
-                <th>NOM</th>
-                <th>DURÉE</th>
-                <th>ANTÉRIEURES</th>
-                <th>SUCCESSEURS</th>
-                <th>ACTION</th>
-            </tr>
-        </thead>
+        <thead><tr><th>NOM</th><th>DURÉE</th><th>ANTÉRIEURES</th><th>SUCCESSEURS</th><th>ACTION</th></tr></thead>
         <tbody>`;
     
     for (const task of currentTasks) {
@@ -772,12 +820,9 @@ async function renderEarliestFlowTable() {
     const container = document.getElementById("earliestFlowTable");
     container.innerHTML = "";
     
-    // Afficher toutes les tâches
     tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
-        const isCritical = task.marge === 0;
-        if (isCritical) block.classList.add("critical-block");
         
         let html = '<table>';
         html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
@@ -797,7 +842,6 @@ async function renderEarliestFlowTable() {
         container.appendChild(block);
     });
     
-    // Afficher le bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
     let endHtml = '<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN</td></tr>';
@@ -854,7 +898,6 @@ async function renderLatestFlowTable() {
     const container = document.getElementById("latestFlowTable");
     container.innerHTML = "";
     
-    // Afficher le bloc DÉBUT
     const startBlock = document.createElement("div");
     startBlock.className = "task-block";
     let startHtml = '<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>';
@@ -866,12 +909,9 @@ async function renderLatestFlowTable() {
     startBlock.innerHTML = startHtml;
     container.appendChild(startBlock);
     
-    // Afficher toutes les tâches
     for (const task of tasks) {
         const block = document.createElement("div");
         block.className = "task-block";
-        const isCritical = task.marge === 0;
-        if (isCritical) block.classList.add("critical-block");
         
         let html = '<table>';
         html += `<tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom] ?? 0}</span> &nbsp; ${task.nom}</td></tr>`;
@@ -900,7 +940,7 @@ async function renderCriticalPath() {
         return;
     }
     
-    // Construction des parents critiques
+    // Calcul des parents critiques (le chemin le plus long)
     const criticalParents = {};
     for (const task of tasks) {
         if (task.dependances.length === 0) {
@@ -912,14 +952,17 @@ async function renderCriticalPath() {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
                     const val = parent.date_plus_tot + parent.duree;
-                    if (val > maxVal) { maxVal = val; bestParent = parent.nom; }
+                    if (val > maxVal) { 
+                        maxVal = val; 
+                        bestParent = parent.nom; 
+                    }
                 }
             }
             criticalParents[task.nom] = bestParent;
         }
     }
     
-    // Dernière tâche
+    // Trouver la dernière tâche (celle qui a le plus grand date_plus_tot + duree)
     const tasksWithSuccessors = new Set();
     tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
     const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
@@ -927,7 +970,10 @@ async function renderCriticalPath() {
     let bestLast = null;
     for (const t of lastTasks) {
         const val = t.date_plus_tot + t.duree;
-        if (val > maxEnd) { maxEnd = val; bestLast = t.nom; }
+        if (val > maxEnd) { 
+            maxEnd = val; 
+            bestLast = t.nom; 
+        }
     }
     
     // Ensemble des tâches critiques
@@ -941,25 +987,37 @@ async function renderCriticalPath() {
     const container = document.getElementById("criticalTable");
     container.innerHTML = "";
     
-    // Afficher toutes les tâches avec mise en évidence des critiques
+    // Afficher chaque tâche
     tasks.forEach(task => {
         const block = document.createElement("div");
         block.className = "task-block";
         const isCritical = criticalSet.has(task.nom);
-        if (isCritical) block.classList.add("critical-block");
+        if (isCritical) {
+            block.classList.add("critical-block");
+        }
         
         let html = '<table>';
-        html += `<tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
+        // Ligne d'en-tête avec le nom et la date
+        html += `<tr class="top-row"><td colspan="2">`;
+        if (isCritical) {
+            html += `<span class="critical-bold">${task.date_plus_tot}</span> &nbsp; <span class="critical-bold">${task.nom}</span>`;
+        } else {
+            html += `<span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}`;
+        }
+        html += `<\/td><\/tr>`;
         
+        // Lignes des prédécesseurs
         if (task.dependances.length === 0) {
-            html += `<tr><td class="earliest-bold">0</td><td class="split ${isCritical ? 'critical-bold' : ''}">DÉBUT 0</td></tr>`;
+            html += `<tr><td class="earliest-bold">0<\/td><td class="split">DÉBUT 0<\/td><\/tr>`;
         } else {
             for (const depId of task.dependances) {
                 const parent = tasks.find(t => t.id === depId);
                 if (parent) {
-                    const isCriticalLink = criticalParents[task.nom] === parent.nom && criticalSet.has(task.nom);
-                    html += `<tr><td class="earliest-bold ${isCriticalLink ? 'critical-bold' : ''}">${parent.date_plus_tot}</td>
-                                 <td class="split ${isCriticalLink ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}</td></tr>`;
+                    const isParentCritical = criticalSet.has(parent.nom) && criticalParents[task.nom] === parent.nom;
+                    html += `<tr>`;
+                    html += `<td class="${isParentCritical ? 'critical-bold' : 'earliest-bold'}">${parent.date_plus_tot}<\/td>`;
+                    html += `<td class="split ${isParentCritical ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}<\/td>`;
+                    html += `<\/tr>`;
                 }
             }
         }
@@ -968,14 +1026,25 @@ async function renderCriticalPath() {
         container.appendChild(block);
     });
     
-    // Afficher le bloc FIN
+    // Bloc FIN
     const endBlock = document.createElement("div");
     endBlock.className = "task-block";
-    let endHtml = '<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">' + maxEnd + '</span> FIN</td></tr>';
+    if (bestLast && criticalSet.has(bestLast)) {
+        endBlock.classList.add("critical-block");
+    }
+    let endHtml = '<tr><tr class="top-row"><td colspan="2">';
+    if (bestLast && criticalSet.has(bestLast)) {
+        endHtml += `<span class="critical-bold">${maxEnd}</span> &nbsp; <span class="critical-bold">FIN</span>`;
+    } else {
+        endHtml += `<span class="earliest-bold">${maxEnd}</span> &nbsp; FIN`;
+    }
+    endHtml += `<\/td><\/tr>`;
     for (const t of lastTasks) {
-        const isCritical = (t.nom === bestLast);
-        endHtml += `<tr><td class="earliest-bold ${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td>
-                        <td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td></tr>`;
+        const isTaskCritical = (t.nom === bestLast && criticalSet.has(bestLast));
+        endHtml += `<tr>`;
+        endHtml += `<td class="${isTaskCritical ? 'critical-bold' : 'earliest-bold'}">${t.date_plus_tot}<\/td>`;
+        endHtml += `<td class="split ${isTaskCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}<\/td>`;
+        endHtml += `<\/tr>`;
     }
     endHtml += '</table>';
     endBlock.innerHTML = endHtml;
