@@ -286,7 +286,7 @@
         body.light .chart-box { background: #ffffff; }
         body.light .notif { background: #ffffff; border-left-color: #5e81ac; color: #2e3440; }
 
-        /* Switch thème (inchangé) */
+        /* Switch thème - logique inversée : cercle à gauche = light, à droite = dark */
         .theme-switch-wrapper {
             display: flex;
             align-items: center;
@@ -325,6 +325,7 @@
             transition: 0.3s;
             border-radius: 50%;
         }
+        /* Quand la case est cochée (dark) : cercle à droite */
         input:checked + .slider:before {
             transform: translateX(32px);
         }
@@ -437,25 +438,28 @@ const API = "http://127.0.0.1:8000";
 let statsChart = null;
 let currentTasks = [];
 
-// ================== GESTION DU THÈME ==================
+// ================== GESTION DU THÈME (logique inversée) ==================
 const themeToggle = document.getElementById('themeToggle');
 const body = document.body;
+// On veut : cercle à gauche (checkbox décoché) = Light, cercle à droite (coché) = Dark
 if (localStorage.getItem('theme') === 'light') {
     body.classList.remove('dark');
     body.classList.add('light');
-    themeToggle.checked = true;
+    themeToggle.checked = false;   // décoché = cercle à gauche = light
 } else {
     body.classList.remove('light');
     body.classList.add('dark');
-    themeToggle.checked = false;
+    themeToggle.checked = true;    // coché = cercle à droite = dark
 }
 themeToggle.addEventListener('change', () => {
     if (themeToggle.checked) {
-        body.classList.replace('dark', 'light');
-        localStorage.setItem('theme', 'light');
-    } else {
+        // coché -> dark (cercle à droite)
         body.classList.replace('light', 'dark');
         localStorage.setItem('theme', 'dark');
+    } else {
+        // décoché -> light (cercle à gauche)
+        body.classList.replace('dark', 'light');
+        localStorage.setItem('theme', 'light');
     }
     if (statsChart) {
         const newColor = body.classList.contains('light') ? '#2e3440' : '#c0caf5';
@@ -503,9 +507,9 @@ function renderTasksTable() {
             <td class="editable" data-field="dependances" data-value="${antérieures}">${antérieures}</td>
             <td>${successeursList}</td>
             <td><button class="delete-btn" onclick="deleteTask(${task.id}, '${task.nom}')"><i class="fas fa-trash"></i> Supprimer</button></td>
-        </tr>`;
+         </tr>`;
     }
-    html += `</tbody></table>`;
+    html += `</tbody>`;
     container.innerHTML = html;
     document.querySelectorAll('.editable').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); makeEditable(el); }); });
 }
@@ -831,9 +835,10 @@ async function updateStatsAndChart() {
     const ctx = document.getElementById('statsChart').getContext('2d');
     if (statsChart) statsChart.destroy();
     const isLight = body.classList.contains('light');
+    // Couleurs : rouge pour critiques, bleu pour non critiques
     statsChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: ['Tâches critiques', 'Tâches non critiques'], datasets: [{ data: [critical, total - critical], backgroundColor: ['#f7768e', '#3b82f6'], borderWidth: 0 }] },
+        data: { labels: ['Tâches critiques', 'Tâches non critiques'], datasets: [{ data: [critical, total - critical], backgroundColor: ['#ef4444', '#3b82f6'], borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: isLight ? '#2e3440' : '#c0caf5' } } } }
     });
 }
