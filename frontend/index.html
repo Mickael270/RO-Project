@@ -1,665 +1,849 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-    <title>Ordonnancement tableau</title>
+    <meta charset="UTF-8">
+    <title>PERT/CPM - Ordonnancement de Projet</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
 
-<style>
-table {
-    border-collapse: collapse;
-    width: 60%;
-    margin-top: 10px;
-}
+        /* ========== THÈME SOMBRE (par défaut) ========== */
+        body {
+            font-family: 'Courier New', 'Fira Code', 'Segoe UI', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            padding: 20px;
+        }
 
-th, td {
-    border: 1px solid black;
-    padding: 8px;
-    text-align: center;
-}
+        /* container et éléments communs */
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            border-bottom: 2px solid #2a3f5e;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .header h1 { font-size: 1.3rem; font-weight: normal; letter-spacing: 2px; color: #7aa2f7; }
+        .header h1 i { color: #3b82f6; margin-right: 8px; }
+        .input-panel, .result-card { background: #0f1222; border: 1px solid #1a1f35; margin-bottom: 25px; }
+        .input-panel { padding: 20px; }
+        .input-panel h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #7aa2f7; margin-bottom: 15px; font-weight: normal; }
+        .input-group { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 15px; }
+        .input-field { flex: 1; min-width: 150px; }
+        .input-field label { display: block; font-size: 0.7rem; text-transform: uppercase; color: #565f89; margin-bottom: 5px; letter-spacing: 1px; }
+        input, select {
+            width: 100%;
+            background: #06080f;
+            border: 1px solid #1a1f35;
+            padding: 8px 12px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: #3b82f6; }
 
-.block {
-    display: inline-block;
-    margin: 10px;
-}
+        /* ========== STYLES DES BOUTONS (MODÈLE PREMIER INDEX) ========== */
+        button {
+            background: transparent;
+            border: 1px solid #2a3f5e;
+            color: #7aa2f7;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+        button:hover {
+            background: #1a1f35;
+            border-color: #3b82f6;
+        }
+        .btn-primary {
+            background: #1a1f35;
+            border-color: #3b82f6;
+        }
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #f7768e;
+            color: #f7768e;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+        .delete-btn:hover {
+            background: #f7768e20;
+            border-color: #f7768e;
+        }
+        .editable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .editable:hover {
+            background: #1a1f35;
+        }
+        .editable-input {
+            background: #06080f;
+            border: 1px solid #3b82f6;
+            color: #e0e0e0;
+            padding: 4px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            width: 100%;
+            border-radius: 4px;
+        }
+        /* Fin styles boutons */
 
-.block table {
-    border-collapse: collapse;
-}
+        .result-header {
+            background: #0a0e27;
+            padding: 12px 20px;
+            border-bottom: 1px solid #1a1f35;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .result-header h3 { font-size: 0.85rem; font-weight: normal; letter-spacing: 2px; color: #7aa2f7; }
+        .result-content { padding: 20px; overflow-x: auto; }
+        .uniform-table { width: 100%; border-collapse: collapse; font-family: 'Courier New', monospace; font-size: 0.8rem; }
+        .uniform-table th { background: #0a0e27; padding: 12px; text-align: center; color: #7aa2f7; border: 1px solid #1a1f35; }
+        .uniform-table td { padding: 10px 12px; text-align: center; border: 1px solid #1a1f35; color: #c0caf5; }
+        .uniform-table tr:hover { background: #1a1f35; }
 
-.block td {
-    border: 1px solid black;
-    padding: 6px 10px;
-    text-align: center;
-}
+        /* Grille des blocs */
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 12px;
+            padding: 5px;
+        }
+        @media (max-width: 1400px) { .tasks-grid { grid-template-columns: repeat(6, 1fr); } }
+        @media (max-width: 1100px) { .tasks-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 800px) { .tasks-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .tasks-grid { grid-template-columns: 1fr; } }
 
-.top-row {
-    border-bottom: 1px solid black;
-}
+        .task-block { display: block; margin: 0; }
+        .task-block table { border-collapse: collapse; width: 100%; background: #0f1222; border: 2px solid #1a1f35; }
+        .task-block td { border: 1px solid #1a1f35; padding: 10px 8px; text-align: center; font-size: 0.8rem; color: #c0caf5; }
+        .task-block .top-row td { background: #0a0e27; font-size: 0.85rem; font-weight: bold; color: #7aa2f7; }
+        .critical-block { border-color: #f7768e !important; box-shadow: 0 0 8px rgba(247,118,142,0.2); }
+        .critical-bold { color: #f7768e !important; font-weight: bold; }
+        .latest-bold { color: #bb9af7 !important; font-weight: bold; }
+        .earliest-bold { color: #64f3a6 !important; font-weight: bold; }
+        .split { font-size: 0.75rem; color: #a9b1d6; }
 
-.split {
-    border-left: 1px solid black;
-}
-.critical-bold {
-    color: red;
-    font-weight: bold;
-}
-.latest-bold {
-    color: blue;
-    font-weight: bold;
-}
-</style>
+        /* ===== CHEMIN CRITIQUE - GRAPHE ANIMÉ ===== */
+        .critical-path-graph {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #06080f 0%, #0a0e27 100%);
+            border-radius: 12px;
+            margin-top: 15px;
+            min-height: 140px;
+        }
+        .path-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px;
+            padding: 12px 18px;
+            background: #0f1222;
+            border-radius: 40px;
+            border: 2px solid #f7768e;
+            box-shadow: 0 0 12px rgba(247,118,142,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: nodeAppear 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        }
+        @keyframes nodeAppear {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .path-node:hover {
+            transform: scale(1.05) translateY(-4px);
+            box-shadow: 0 0 20px rgba(247,118,142,0.8), 0 8px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .path-node .node-name { font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: bold; color: #f7768e; }
+        .path-node .node-duration { font-family: monospace; font-size: 0.75rem; color: #64f3a6; background: rgba(100,243,166,0.15); padding: 3px 10px; border-radius: 20px; margin-top: 6px; }
+        .path-arrow {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0 5px;
+            opacity: 0;
+            transform: translateX(-10px);
+            animation: arrowAppear 0.4s ease-out forwards;
+        }
+        @keyframes arrowAppear {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .path-arrow i { font-size: 1.8rem; color: #f7768e; transition: transform 0.2s; }
+        .path-arrow:hover i { transform: translateX(4px); }
+        .path-arrow .duration-label { font-size: 0.7rem; font-weight: bold; color: #f7768e; margin-top: 3px; background: rgba(247,118,142,0.15); padding: 2px 8px; border-radius: 15px; }
+        .start-node, .end-node { border-color: #64f3a6; box-shadow: 0 0 12px rgba(100,243,166,0.3); }
+        .start-node .node-name, .end-node .node-name { color: #64f3a6; }
 
+        /* Statistiques */
+        .stats-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .stat-item { flex: 1; background: #06080f; padding: 10px; text-align: center; border: 1px solid #1a1f35; }
+        .stat-value { font-size: 1.8rem; font-family: monospace; color: #7aa2f7; }
+        .stat-label { font-size: 0.65rem; text-transform: uppercase; color: #565f89; }
+        .chart-box { background: #06080f; padding: 15px; }
+        canvas { max-height: 250px; }
+        .notif { position: fixed; bottom: 20px; right: 20px; background: #0f1222; border-left: 3px solid #3b82f6; padding: 12px 20px; font-size: 0.8rem; z-index: 1000; animation: slideUp 0.3s ease; border-radius: 8px; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #06080f; }
+        ::-webkit-scrollbar-thumb { background: #2a3f5e; }
+
+        /* ========== THÈME CLAIR (adapte aussi les boutons) ========== */
+        body.light {
+            background: #eceff4;
+            color: #2e3440;
+        }
+        body.light .header { border-bottom-color: #d8dee9; }
+        body.light .header h1 { color: #2e5c8a; }
+        body.light .input-panel,
+        body.light .result-card,
+        body.light .task-block table {
+            background: #ffffffdd;
+            backdrop-filter: blur(2px);
+            border-color: #d8dee9;
+        }
+        body.light .input-panel h3,
+        body.light .result-header h3 { color: #2e5c8a; }
+        body.light .result-header { background: #f7f9fc; border-bottom-color: #e5e9f0; }
+        body.light .uniform-table th { background: #e5e9f0; color: #2e5c8a; border-color: #d8dee9; }
+        body.light .uniform-table td { border-color: #d8dee9; color: #3b4252; }
+        body.light .uniform-table tr:hover { background: #e5e9f0; }
+        body.light input, body.light select { background: #ffffff; border-color: #d8dee9; color: #2e3440; }
+        
+        /* Boutons en thème clair */
+        body.light button {
+            border-color: #bdc4d0;
+            color: #2e5c8a;
+        }
+        body.light button:hover {
+            background: #e5e9f0;
+            border-color: #5e81ac;
+        }
+        body.light .btn-primary {
+            background: #e5e9f0;
+        }
+        body.light .delete-btn {
+            border-color: #bf616a;
+            color: #bf616a;
+        }
+        body.light .delete-btn:hover {
+            background: #fceaea;
+        }
+        body.light .editable:hover {
+            background: #e5e9f0;
+        }
+        body.light .editable-input {
+            background: #ffffff;
+            border-color: #5e81ac;
+            color: #2e3440;
+        }
+        
+        body.light .task-block td { border-color: #d8dee9; color: #3b4252; }
+        body.light .task-block .top-row td { background: #e5e9f0; color: #2e5c8a; }
+        body.light .critical-block { border-color: #bf616a !important; background: #fceaea; }
+        body.light .critical-bold { color: #bf616a !important; }
+        body.light .earliest-bold { color: #2e8b6c !important; }
+        body.light .latest-bold { color: #6c5ce7 !important; }
+        body.light .split { color: #6c7a8a; }
+        body.light .path-node { background: #ffffff; border-color: #bf616a; box-shadow: 0 0 10px rgba(191,97,106,0.2); }
+        body.light .path-node .node-name { color: #bf616a; }
+        body.light .path-node .node-duration { color: #2e8b6c; background: rgba(46,139,108,0.1); }
+        body.light .start-node, body.light .end-node { border-color: #2e8b6c; }
+        body.light .start-node .node-name, body.light .end-node .node-name { color: #2e8b6c; }
+        body.light .path-arrow i { color: #bf616a; }
+        body.light .path-arrow .duration-label { color: #bf616a; background: rgba(191,97,106,0.1); }
+        body.light .critical-path-graph { background: #eef2f5; border: 1px solid #bf616a30; }
+        body.light .stat-item { background: #ffffff; border-color: #d8dee9; }
+        body.light .stat-value { color: #2e5c8a; }
+        body.light .chart-box { background: #ffffff; }
+        body.light .notif { background: #ffffff; border-left-color: #5e81ac; color: #2e3440; }
+
+        /* Switch thème - logique inversée : cercle à gauche = light, à droite = dark */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 28px;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3b82f6;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        /* Quand la case est cochée (dark) : cercle à droite */
+        input:checked + .slider:before {
+            transform: translateX(32px);
+        }
+        .fa-sun, .fa-moon {
+            font-size: 1.2rem;
+        }
+        body.light .fa-moon { color: #6c7a8a; }
+        body.light .fa-sun { color: #f39c12; }
+        body.dark .fa-sun { color: #fbbf24; }
+        body.dark .fa-moon { color: #a9b1d6; }
+    </style>
 </head>
+<body class="dark">
 
-<body>
+<div class="container">
+    <div class="header">
+        <h1><i class="fas fa-chart-network"></i> PERT/CPM - ORDONNANCEMENT DE PROJET</h1>
+        <div class="theme-switch-wrapper">
+            <i class="fas fa-sun"></i>
+            <label class="theme-switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
+            <i class="fas fa-moon"></i>
+        </div>
+    </div>
 
-<h1>Ordonnancement tableau</h1>
+    <div id="page1">
+        <div class="input-panel">
+            <h3><i class="fas fa-plus"></i> NOUVELLE TÂCHE</h3>
+            <div class="input-group">
+                <div class="input-field">
+                    <label>NOM</label>
+                    <input type="text" id="nom" placeholder="Tâche (ex: A, B, C)">
+                </div>
+                <div class="input-field">
+                    <label>DURÉE (j)</label>
+                    <input type="number" id="duree" placeholder="0">
+                </div>
+                <div class="input-field">
+                    <label>ANTÉRIEURES</label>
+                    <input type="text" id="dependances" placeholder="A, B, C">
+                </div>
+                <div class="input-field" style="flex: 0.3;">
+                    <label>&nbsp;</label>
+                    <button onclick="addTask()" class="btn-primary">+ AJOUTER</button>
+                </div>
+            </div>
+        </div>
 
-<!-- ================= AJOUT ================= -->
-<h2>Ajouter une tâche</h2>
+        <div class="result-card">
+            <div class="result-header">
+                <h3><i class="fas fa-table-list"></i> LISTE DES TÂCHES</h3>
+                <div class="badge" id="taskStats"></div>
+            </div>
+            <div class="result-content">
+                <div id="tasksTableContainer"></div>
+            </div>
+        </div>
 
-<input id="id" placeholder="ID">
-<input id="nom" placeholder="Nom">
-<input id="duree" placeholder="Durée">
-<input id="dependances" placeholder="Tâches antérieures (ex: A,B)">
-<button onclick="addTask()">Ajouter</button>
+        <div style="text-align: center; margin-top: 20px;">
+            <button onclick="goToPage2()" class="btn-primary">
+                <i class="fas fa-play"></i> CALCULER L'ORDONNANCEMENT
+            </button>
+        </div>
+    </div>
 
-<!-- ================= LISTE ================= -->
-<h2>Liste des tâches</h2>
+    <div id="page2" class="hidden">
+        <div class="nav-buttons">
+            <button onclick="goBack()"><i class="fas fa-arrow-left"></i> RETOUR</button>
+            <button onclick="refreshResults()" class="btn-primary"><i class="fas fa-sync-alt"></i> RECALCULER</button>
+        </div>
 
-<button onclick="loadTasks()">Afficher les tâches</button>
+        <div class="result-card">
+            <div class="result-header"><h3><i class="fas fa-chart-simple"></i> STATISTIQUES</h3></div>
+            <div class="result-content">
+                <div class="stats-row">
+                    <div class="stat-item"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Tâches totales</div></div>
+                    <div class="stat-item"><div class="stat-value" id="statCritical">0</div><div class="stat-label">Tâches critiques</div></div>
+                    <div class="stat-item"><div class="stat-value" id="statDuration">0</div><div class="stat-label">Durée projet (j)</div></div>
+                </div>
+                <div class="chart-box"><canvas id="statsChart"></canvas></div>
+            </div>
+        </div>
 
-<div id="table-container" style="display:none;">
-<table>
-    <thead>
-        <tr>
-            <th>Tâche</th>
-            <th>Durée</th>
-            <th>Tâche antérieure</th>
-            <th>Tâche successeur</th>
-        </tr>
-    </thead>
-    <tbody id="tasks"></tbody>
-</table>
+        <div class="result-card">
+            <div class="result-header"><h3><i class="fas fa-calendar-day"></i> DATES AU PLUS TÔT</h3></div>
+            <div class="result-content"><div id="earliestFlowTable" class="tasks-grid"></div></div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-header"><h3><i class="fas fa-road"></i> CHEMIN CRITIQUE</h3></div>
+            <div class="result-content">
+                <div id="criticalTable" class="tasks-grid"></div>
+                <div id="criticalGraph" class="critical-path-graph"></div>
+            </div>
+        </div>
+
+        <div class="result-card">
+            <div class="result-header"><h3><i class="fas fa-calendar-week"></i> DATES AU PLUS TARD</h3></div>
+            <div class="result-content"><div id="latestFlowTable" class="tasks-grid"></div></div>
+        </div>
+    </div>
 </div>
 
-<!-- ================= DATES AU PLUS TOT ================= -->
-<h2>Dates au plus tôt</h2>
-
-<button onclick="generateOrdonnancement()">Afficher dates au plus tôt</button>
-
-<div id="ordonnancement"></div>
-
-<!-- ================= CRITIQUE ================= -->
-<h2>Chemin critique</h2>
-
-<button onclick="showCriticalPath()">Afficher le chemin critique</button>
-
-<div id="critical"></div>
-
-<!-- ================= DATE AU PLUS TARD ================= -->
-<h2>Dates au plus tard</h2>
-
-<button onclick="showLatestDates()">Afficher dates au plus tard</button>
-
-<div id="latest"></div>
+<div id="notif" class="notif hidden"></div>
 
 <script>
+const API = "http://127.0.0.1:8000";
+let statsChart = null;
+let currentTasks = [];
 
-const API = "http://127.0.0.1:8000"
-
-// ================= ADD =================
-async function addTask(){
-
-    const depInput = document.getElementById("dependances").value
-        .split(",")
-        .map(x => x.trim())
-        .filter(x => x !== "")
-
-    const res = await fetch(API + "/tasks")
-    const existingTasks = await res.json()
-
-    const dependances = depInput.map(letter => {
-        const found = existingTasks.find(t => t.nom === letter)
-        return found ? found.id : null
-    }).filter(x => x !== null)
-
-    const task = {
-        id: parseInt(document.getElementById("id").value),
-        nom: document.getElementById("nom").value,
-        duree: parseInt(document.getElementById("duree").value),
-        date_plus_tot: 0,
-        date_plus_tard: 0,
-        marge: 0,
-        dependances: dependances
+// ================== GESTION DU THÈME (logique inversée) ==================
+const themeToggle = document.getElementById('themeToggle');
+const body = document.body;
+// On veut : cercle à gauche (checkbox décoché) = Light, cercle à droite (coché) = Dark
+if (localStorage.getItem('theme') === 'light') {
+    body.classList.remove('dark');
+    body.classList.add('light');
+    themeToggle.checked = false;   // décoché = cercle à gauche = light
+} else {
+    body.classList.remove('light');
+    body.classList.add('dark');
+    themeToggle.checked = true;    // coché = cercle à droite = dark
+}
+themeToggle.addEventListener('change', () => {
+    if (themeToggle.checked) {
+        // coché -> dark (cercle à droite)
+        body.classList.replace('light', 'dark');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        // décoché -> light (cercle à gauche)
+        body.classList.replace('dark', 'light');
+        localStorage.setItem('theme', 'light');
     }
-
-    await fetch(API + "/tasks",{
-        method:"POST",
-        body:JSON.stringify(task),
-        headers:{
-            "Content-Type":"application/json"
-        }
-    })
-    await loadTasks()
-}
-
-// ================= LISTE =================
-async function loadTasks(){
-
-    document.getElementById("table-container").style.display = "block"
-
-
-
-    const res = await fetch(API + "/tasks")
-    const data = await res.json()
-
-    const tbody = document.getElementById("tasks")
-    tbody.innerHTML = ""
-
-    // 🔥 Construire les successeurs
-    let successorsMap = {}
-
-    data.forEach(task => {
-        successorsMap[task.nom] = []
-    })
-
-    data.forEach(task => {
-        task.dependances.forEach(dep => {
-            const parent = data.find(t => t.id === dep)
-            if(parent){
-                successorsMap[parent.nom].push(task.nom)
-            }
-        })
-    })
-
-    // 🔥 Affichage
-    data.forEach(task => {
-
-        let anterieurs = []
-
-        task.dependances.forEach(dep => {
-            const parent = data.find(t => t.id === dep)
-            if(parent){
-                anterieurs.push(parent.nom)
-            }
-        })
-
-       let successeurs = successorsMap[task.nom]
-
-// 🔥 SI aucun successeur → FIN
-       let succText = (successeurs.length === 0) ? "FIN" : successeurs.join(", ")
-
-        const row = document.createElement("tr")
-
-        row.innerHTML = `
-            <td>${task.nom}</td>
-            <td>${task.duree}</td>
-            <td>${anterieurs.join(", ") || "-"}</td>
-            <td>${succText}</td>
-        `
-
-        tbody.appendChild(row)
-    })
-}
-
-// ================= 🔥 DATES =================
-async function generateOrdonnancement(){
-
-    await fetch(API + "/schedule/earliest")
-
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
-
-    const container = document.getElementById("ordonnancement")
-    container.innerHTML = ""
-
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
-
-    tasks.forEach(task => {
-
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
-        html += `
-            <tr class="top-row">
-                <td colspan="2">
-                    <span style="color:red">${task.date_plus_tot}</span>
-                    &nbsp; ${task.nom}
-                </td>
-            </tr>
-        `
-
-        if(task.dependances.length === 0){
-            html += `
-                <tr>
-                    <td style="color:red">0</td>
-                    <td class="split">DEBUT 0</td>
-                </tr>
-            `
-        } else {
-
-            task.dependances.forEach(dep => {
-
-                const parent = tasks.find(t => t.id === dep)
-
-                if(parent){
-                    html += `
-                        <tr>
-                            <td style="color:red">${parent.date_plus_tot}</td>
-                            <td class="split">${parent.nom} ${parent.duree}</td>
-                        </tr>
-                    `
-                }
-            })
-        }
-
-        html += `</table>`
-
-        block.innerHTML = html
-        container.appendChild(block)
-    })
-
-    // ===== FIN =====
-    const endBlock = document.createElement("div")
-    endBlock.className = "block"
-
-    let endHTML = `<table>`
-
-    let maxEnd = 0
-
-    lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd){
-            maxEnd = val
-        }
-    })
-
-    endHTML += `
-        <tr class="top-row">
-            <td colspan="2">
-                <span style="color:red">${maxEnd}</span> FIN
-            </td>
-        </tr>
-    `
-
-    lastTasks.forEach(t => {
-        endHTML += `
-            <tr>
-                <td style="color:red">${t.date_plus_tot}</td>
-                <td class="split">${t.nom} ${t.duree}</td>
-            </tr>
-        `
-    })
-
-    endHTML += `</table>`
-
-    endBlock.innerHTML = endHTML
-    container.appendChild(endBlock)
-}
-
-// ================= 🔥 CHEMIN CRITIQUE =================
-function getCriticalParents(tasks){
-
-    const map = {}
-
-    tasks.forEach(task => {
-
-        if(task.dependances.length === 0){
-            map[task.nom] = "DEBUT"
-        } else {
-
-            let maxVal = -1
-            let bestParent = null
-
-            task.dependances.forEach(dep => {
-
-                const parent = tasks.find(t => t.id === dep)
-
-                if(parent){
-                    const val = parent.date_plus_tot + parent.duree
-
-                    if(val > maxVal){
-                        maxVal = val
-                        bestParent = parent.nom
-                    }
-                }
-            })
-
-            map[task.nom] = bestParent
-        }
-    })
-
-    return map
-}
-
-
-
-async function showCriticalPath(){
-
-    await fetch(API + "/schedule/earliest")
-
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
-
-    const criticalParents = getCriticalParents(tasks)
-
-    const container = document.getElementById("critical")
-    container.innerHTML = ""
-
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
-
-    // 🔥 Trouver FIN (max)
-    let maxEnd = 0
-    let bestLast = null
-
-    lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd){
-            maxEnd = val
-            bestLast = t.nom
-        }
-    })
-
-    // 🔥 Construire chemin critique UNIQUE
-    let criticalSet = new Set()
-    let current = bestLast
-
-    while(current && current !== "DEBUT"){
-        criticalSet.add(current)
-        current = criticalParents[current]
+    if (statsChart) {
+        const newColor = body.classList.contains('light') ? '#2e3440' : '#c0caf5';
+        statsChart.options.plugins.legend.labels.color = newColor;
+        statsChart.update();
     }
+});
 
-    // ================= TABLEAUX =================
-    tasks.forEach(task => {
-
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
-        html += `
-            <tr class="top-row">
-                <td colspan="2">
-                    <span style="color:red">${task.date_plus_tot}</span>
-                    &nbsp; ${task.nom}
-                </td>
-            </tr>
-        `
-
-        if(task.dependances.length === 0){
-
-            html += `
-                <tr>
-                    <td style="color:red">0</td>
-                    <td class="split ${criticalSet.has(task.nom) ? 'critical-bold' : ''}">
-                        DEBUT 0
-                    </td>
-                </tr>
-            `
-
-        } else {
-
-            task.dependances.forEach(dep => {
-
-                const parent = tasks.find(t => t.id === dep)
-
-                if(parent){
-
-                    // 🔥 SEULEMENT le parent critique (MAX)
-                    const isCriticalLink =
-                        criticalParents[task.nom] === parent.nom &&
-                        criticalSet.has(task.nom)
-
-                    html += `
-                        <tr>
-                            <td class="${isCriticalLink ? 'critical-bold' : ''}" style="color:red">
-                                ${parent.date_plus_tot}
-                            </td>
-                            <td class="split ${isCriticalLink ? 'critical-bold' : ''}">
-                                ${parent.nom} ${parent.duree}
-                            </td>
-                        </tr>
-                    `
-                }
-            })
-        }
-
-        html += `</table>`
-
-        block.innerHTML = html
-        container.appendChild(block)
-    })
-
-    // ================= FIN =================
-    const endBlock = document.createElement("div")
-    endBlock.className = "block"
-
-    let endHTML = `<table>`
-
-    endHTML += `
-        <tr class="top-row">
-            <td colspan="2">
-                <span style="color:red">${maxEnd}</span> FIN
-            </td>
-        </tr>
-    `
-
-    lastTasks.forEach(t => {
-
-        const isCritical = (t.nom === bestLast)
-
-        endHTML += `
-            <tr>
-                <td class="${isCritical ? 'critical-bold' : ''}" style="color:red">
-                    ${t.date_plus_tot}
-                </td>
-                <td class="split ${isCritical ? 'critical-bold' : ''}">
-                    ${t.nom} ${t.duree}
-                </td>
-            </tr>
-        `
-    })
-
-    endHTML += `</table>`
-
-    endBlock.innerHTML = endHTML
-    container.appendChild(endBlock)
-
-    // ================= CHEMIN TEXTE =================
-
-    let result = "<h3>Chemin critique :</h3> "
-
-    let path = []
-    let node = bestLast
-
-    while(node && node !== "DEBUT"){
-        path.unshift(node)
-        node = criticalParents[node]
-    }
-
-    result += `<b>DEBUT</b>(0)`
-
-    path.forEach(name => {
-        const t = tasks.find(x => x.nom === name)
-        result += ` <span style="color:red">→</span> <b>${t.nom}</b>(${t.duree})`
-    })
-
-    result += ` <span style="color:red">→</span> <b>FIN</b>`
-
-    const pathDiv = document.createElement("div")
-    pathDiv.style.marginTop = "20px"
-    pathDiv.innerHTML = result
-
-    container.appendChild(pathDiv)
+function showNotification(msg, isError = false) {
+    const notif = document.getElementById("notif");
+    notif.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check-circle'}"></i> ${msg}`;
+    notif.classList.remove("hidden");
+    setTimeout(() => notif.classList.add("hidden"), 3000);
 }
 
-async function showLatestDates(){
+// ================== GESTION DES TÂCHES ==================
+async function loadTasks() {
+    try {
+        const res = await fetch(API + "/tasks");
+        currentTasks = await res.json();
+        renderTasksTable();
+        document.getElementById("taskStats").innerHTML = `${currentTasks.length} tâche(s)`;
+    } catch (error) { showNotification("Erreur de connexion au serveur", true); }
+}
 
-    // 🔥 récupérer données
-    await fetch(API + "/schedule/earliest")
+function renderTasksTable() {
+    const container = document.getElementById("tasksTableContainer");
+    if (!container) return;
+    if (currentTasks.length === 0) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#565f89;">Aucune tâche définie</div>'; return; }
+    let successors = {};
+    currentTasks.forEach(t => successors[t.nom] = []);
+    currentTasks.forEach(t => {
+        t.dependances.forEach(depId => {
+            const parent = currentTasks.find(p => p.id === depId);
+            if (parent) successors[parent.nom].push(t.nom);
+        });
+    });
+    let html = `<table class="uniform-table"><thead><tr><th>NOM</th><th>DURÉE</th><th>ANTÉRIEURES</th><th>SUCCESSEURS</th><th>ACTION</th></tr></thead><tbody>`;
+    for (const task of currentTasks) {
+        const antérieures = task.dependances.map(depId => { const t = currentTasks.find(p => p.id === depId); return t ? t.nom : ""; }).filter(n => n).join(", ") || "-";
+        const successeursList = successors[task.nom].join(", ") || "FIN";
+        html += `<tr data-id="${task.id}" data-nom="${task.nom}">
+            <td class="editable" data-field="nom" data-value="${task.nom}">${task.nom}</td>
+            <td class="editable" data-field="duree" data-value="${task.duree}">${task.duree}</td>
+            <td class="editable" data-field="dependances" data-value="${antérieures}">${antérieures}</td>
+            <td>${successeursList}</td>
+            <td><button class="delete-btn" onclick="deleteTask(${task.id}, '${task.nom}')"><i class="fas fa-trash"></i> Supprimer</button></td>
+         </tr>`;
+    }
+    html += `</tbody>`;
+    container.innerHTML = html;
+    document.querySelectorAll('.editable').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); makeEditable(el); }); });
+}
 
-    const res = await fetch(API + "/tasks")
-    const tasks = await res.json()
-
-    const container = document.getElementById("latest")
-    container.innerHTML = ""
-
-    // 🔥 construire successeurs
-    let successorsMap = {}
-
-    tasks.forEach(t => successorsMap[t.nom] = [])
-
-    tasks.forEach(task => {
-        task.dependances.forEach(dep => {
-            const parent = tasks.find(t => t.id === dep)
-            if(parent){
-                successorsMap[parent.nom].push(task)
+function makeEditable(element) {
+    if (element.querySelector('input')) return;
+    const field = element.dataset.field;
+    const currentValue = element.dataset.value;
+    const taskId = parseInt(element.closest('tr').dataset.id);
+    let inputHtml = field === 'dependances' ? `<input type="text" class="editable-input" value="${currentValue}" placeholder="A,B,C">` : `<input type="${field === 'duree' ? 'number' : 'text'}" class="editable-input" value="${currentValue}">`;
+    element.innerHTML = inputHtml;
+    const input = element.querySelector('input');
+    input.focus();
+    const save = async () => {
+        let newValue = input.value.trim();
+        if (newValue === "") newValue = field === 'duree' ? "0" : "-";
+        if (field === 'dependances') {
+            const depNames = newValue.split(',').map(s => s.trim()).filter(s => s);
+            const depIds = [];
+            for (const name of depNames) {
+                const task = currentTasks.find(t => t.nom === name);
+                if (task) depIds.push(task.id);
+                else if (name) showNotification(`Tâche "${name}" non trouvée`, true);
             }
-        })
-    })
-
-    // 🔥 trouver FIN
-    const tasksWithSuccessors = tasks.flatMap(t => t.dependances)
-    const lastTasks = tasks.filter(t => !tasksWithSuccessors.includes(t.id))
-
-    let maxEnd = 0
-    lastTasks.forEach(t => {
-        const val = t.date_plus_tot + t.duree
-        if(val > maxEnd){
-            maxEnd = val
+            await updateTaskField(taskId, field, depIds);
+        } else if (field === 'duree') {
+            const newDuree = parseInt(newValue);
+            if (!isNaN(newDuree)) await updateTaskField(taskId, field, newDuree);
+        } else {
+            await updateTaskField(taskId, field, newValue);
         }
-    })
+        await loadTasks();
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keypress', (e) => { if (e.key === 'Enter') save(); });
+}
 
-    // 🔥 calcul dates au plus tard
-    let latestMap = {}
+async function updateTaskField(taskId, field, value) {
+    try {
+        await fetch(`${API}/tasks/${taskId}/${field}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value: value }) });
+        showNotification("Tâche modifiée");
+    } catch (error) { showNotification("Erreur modification", true); }
+}
 
-    // initialiser FIN
-    lastTasks.forEach(t => {
-        latestMap[t.nom] = maxEnd - t.duree
-    })
+async function addTask() {
+    const nom = document.getElementById("nom").value.trim();
+    const duree = parseInt(document.getElementById("duree").value);
+    if (!nom || isNaN(duree)) { showNotification("Nom et durée requis", true); return; }
+    try {
+        const res = await fetch(API + "/tasks");
+        const existingTasks = await res.json();
+        const depNames = document.getElementById("dependances").value.split(",").map(s => s.trim()).filter(s => s);
+        const dependances = [];
+        for (const name of depNames) {
+            const t = existingTasks.find(x => x.nom === name);
+            if (t) dependances.push(t.id);
+            else if (name) showNotification(`Tâche "${name}" non trouvée`, true);
+        }
+        const newId = Date.now();
+        await fetch(API + "/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: newId, nom, duree, dependances, date_plus_tot: 0, date_plus_tard: 0, marge: 0 }) });
+        document.getElementById("nom").value = ""; document.getElementById("duree").value = ""; document.getElementById("dependances").value = "";
+        await loadTasks();
+        showNotification(`Tâche "${nom}" ajoutée`);
+    } catch (error) { showNotification("Erreur lors de l'ajout", true); }
+}
 
-    // 🔥 boucle inverse (approx simple)
-    let changed = true
-    while(changed){
-        changed = false
+async function deleteTask(id, nom) {
+    if (confirm(`Supprimer "${nom}" ?`)) {
+        await fetch(`${API}/tasks/${id}`, { method: "DELETE" });
+        await loadTasks();
+        showNotification(`"${nom}" supprimée`);
+    }
+}
 
-        tasks.forEach(task => {
+async function goToPage2() {
+    showNotification("Calcul en cours...");
+    await refreshResults();
+    document.getElementById("page1").classList.add("hidden");
+    document.getElementById("page2").classList.remove("hidden");
+}
 
-            let successors = successorsMap[task.nom]
+function goBack() {
+    document.getElementById("page2").classList.add("hidden");
+    document.getElementById("page1").classList.remove("hidden");
+}
 
-            if(successors.length > 0){
+async function refreshResults() {
+    try {
+        await fetch(API + "/schedule/earliest");
+        await fetch(API + "/schedule/latest");
+        await fetch(API + "/schedule/margins");
+        await loadTasks();
+        await renderEarliestFlowTable();
+        await renderLatestFlowTable();
+        await renderCriticalPath();
+        await updateStatsAndChart();
+        showNotification("Calcul terminé");
+    } catch (error) { showNotification("Erreur de calcul", true); }
+}
 
-                let minVal = Infinity
-
-                successors.forEach(s => {
-                    const val = (latestMap[s.nom] !== undefined)
-                        ? latestMap[s.nom] - task.duree
-                        : Infinity
-
-                    if(val < minVal){
-                        minVal = val
-                    }
-                })
-
-                if(minVal !== Infinity){
-                    if(latestMap[task.nom] === undefined || minVal < latestMap[task.nom]){
-                        latestMap[task.nom] = minVal
-                        changed = true
-                    }
+// ========== DATES AU PLUS TÔT ==========
+async function renderEarliestFlowTable() {
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
+    const tasksWithSuccessors = new Set();
+    tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
+    let maxEnd = 0;
+    lastTasks.forEach(t => { const end = t.date_plus_tot + t.duree; if (end > maxEnd) maxEnd = end; });
+    const container = document.getElementById("earliestFlowTable");
+    container.innerHTML = "";
+    tasks.forEach(task => {
+        const block = document.createElement("div");
+        block.className = "task-block";
+        const isCritical = task.marge === 0;
+        if (isCritical) block.classList.add("critical-block");
+        let html = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
+        if (task.dependances.length === 0) {
+            html += `<tr><td class="earliest-bold">0</td><td class="split">DÉBUT 0</td></tr>`;
+        } else {
+            for (const depId of task.dependances) {
+                const parent = tasks.find(t => t.id === depId);
+                if (parent) {
+                    html += `<tr><td class="earliest-bold">${parent.date_plus_tot}</td><td class="split">${parent.nom} ${parent.duree}</td></tr>`;
                 }
             }
-        })
-    }
-        // ================= DEBUT =================
-const startBlock = document.createElement("div")
-startBlock.className = "block"
-
-let startHTML = `<table>`
-
-// 🔵 ligne 1 (date au plus tard = 0)
-startHTML += `
-    <tr class="top-row">
-        <td colspan="2">
-            <span class="latest-bold">0</span> DEBUT
-        </td>
-    </tr>
-`
-
-// 🔽 successeurs de DEBUT = tâches sans dépendances
-const startTasks = tasks.filter(t => t.dependances.length === 0)
-
-startTasks.forEach(t => {
-    startHTML += `
-        <tr>
-            <td class="latest-bold">${latestMap[t.nom] ?? ""}</td>
-            <td class="split">${t.nom} 0</td>
-        </tr>
-    `
-})
-
-startHTML += `</table>`
-
-startBlock.innerHTML = startHTML
-container.appendChild(startBlock)
-    // 🔥 AFFICHAGE TABLEAUX
-    tasks.forEach(task => {
-        
-        const block = document.createElement("div")
-        block.className = "block"
-
-        let html = `<table>`
-
-        // 🔵 ligne 1 = date au plus tard
-        html += `
-            <tr class="top-row">
-                <td colspan="2">
-                    <span class="latest-bold">${latestMap[task.nom] ?? 0}</span>
-                    &nbsp; ${task.nom}
-                </td>
-            </tr>
-        `
-
-        // 🔽 lignes successeurs
-        let successors = successorsMap[task.nom]
-
-        if(successors.length === 0){
-
-            html += `
-                <tr>
-                    <td class="latest-bold">${maxEnd}</td>
-                    <td class="split">FIN ${task.duree}</td>
-                </tr>
-            `
-
-        } else {
-
-            successors.forEach(s => {
-
-                html += `
-                    <tr>
-                        <td class="latest-bold">
-                            ${latestMap[s.nom] ?? ""}
-                        </td>
-                        <td class="split">
-                            ${s.nom} ${task.duree}
-                        </td>
-                    </tr>
-                `
-            })
         }
-
-        html += `</table>`
-
-        block.innerHTML = html
-        container.appendChild(block)
-    })
+        html += `</table>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    });
+    const endBlock = document.createElement("div");
+    endBlock.className = "task-block";
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    for (const t of lastTasks) {
+        endHtml += `<tr><td class="earliest-bold">${t.date_plus_tot}</td><td class="split">${t.nom} ${t.duree}</td></tr>`;
+    }
+    endHtml += `</table>`;
+    endBlock.innerHTML = endHtml;
+    container.appendChild(endBlock);
 }
 
+// ========== DATES AU PLUS TARD ==========
+async function renderLatestFlowTable() {
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
+    let successorsMap = {};
+    tasks.forEach(t => successorsMap[t.nom] = []);
+    tasks.forEach(task => {
+        task.dependances.forEach(depId => {
+            const parent = tasks.find(t => t.id === depId);
+            if (parent) successorsMap[parent.nom].push(task);
+        });
+    });
+    const tasksWithSuccessors = new Set();
+    tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
+    let maxEnd = 0;
+    lastTasks.forEach(t => { const end = t.date_plus_tot + t.duree; if (end > maxEnd) maxEnd = end; });
+    let latestMap = {};
+    lastTasks.forEach(t => { latestMap[t.nom] = maxEnd - t.duree; });
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const task of tasks) {
+            const successors = successorsMap[task.nom];
+            if (successors.length > 0) {
+                let minVal = Infinity;
+                for (const s of successors) {
+                    const val = latestMap[s.nom] !== undefined ? latestMap[s.nom] - task.duree : Infinity;
+                    if (val < minVal) minVal = val;
+                }
+                if (minVal !== Infinity && (latestMap[task.nom] === undefined || minVal < latestMap[task.nom])) {
+                    latestMap[task.nom] = minVal;
+                    changed = true;
+                }
+            }
+        }
+    }
+    for (const task of tasks) if (latestMap[task.nom] === undefined) latestMap[task.nom] = 0;
+    const container = document.getElementById("latestFlowTable");
+    container.innerHTML = "";
+    const startBlock = document.createElement("div");
+    startBlock.className = "task-block";
+    let startHtml = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">0</span> DÉBUT</td></tr>`;
+    const startTasks = tasks.filter(t => t.dependances.length === 0);
+    startTasks.forEach(t => { startHtml += `<tr><td class="latest-bold">${latestMap[t.nom] ?? 0}</td><td class="split">${t.nom} 0</td></tr>`; });
+    startHtml += `</table>`;
+    startBlock.innerHTML = startHtml;
+    container.appendChild(startBlock);
+    for (const task of tasks) {
+        const block = document.createElement("div");
+        block.className = "task-block";
+        const isCritical = task.marge === 0;
+        if (isCritical) block.classList.add("critical-block");
+        let html = `<table><tr class="top-row"><td colspan="2"><span class="latest-bold">${latestMap[task.nom] ?? 0}</span> &nbsp; ${task.nom}</td></tr>`;
+        const successors = successorsMap[task.nom];
+        if (successors.length === 0) {
+            html += `<tr><td class="latest-bold">${maxEnd}</td><td class="split">FIN ${task.duree}</td></tr>`;
+        } else {
+            for (const s of successors) {
+                html += `<tr><td class="latest-bold">${latestMap[s.nom] ?? 0}</td><td class="split">${s.nom} ${task.duree}</td></tr>`;
+            }
+        }
+        html += `</table>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    }
+}
+
+// ========== CHEMIN CRITIQUE avec animation dynamique ==========
+async function renderCriticalPath() {
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
+    if (tasks.length === 0) {
+        document.getElementById("criticalTable").innerHTML = '<div style="text-align:center;padding:40px;">Aucune tâche</div>';
+        document.getElementById("criticalGraph").innerHTML = '<div style="text-align:center;padding:40px;">Aucune tâche</div>';
+        return;
+    }
+    const criticalParents = {};
+    for (const task of tasks) {
+        if (task.dependances.length === 0) {
+            criticalParents[task.nom] = "DEBUT";
+        } else {
+            let maxVal = -1, bestParent = null;
+            for (const depId of task.dependances) {
+                const parent = tasks.find(t => t.id === depId);
+                if (parent) {
+                    const val = parent.date_plus_tot + parent.duree;
+                    if (val > maxVal) { maxVal = val; bestParent = parent.nom; }
+                }
+            }
+            criticalParents[task.nom] = bestParent;
+        }
+    }
+    const tasksWithSuccessors = new Set();
+    tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
+    let maxEnd = 0, bestLast = null;
+    for (const t of lastTasks) {
+        const val = t.date_plus_tot + t.duree;
+        if (val > maxEnd) { maxEnd = val; bestLast = t.nom; }
+    }
+    let criticalSet = new Set();
+    let current = bestLast;
+    while (current && current !== "DEBUT") { criticalSet.add(current); current = criticalParents[current]; }
+    const container = document.getElementById("criticalTable");
+    container.innerHTML = "";
+    tasks.forEach(task => {
+        const block = document.createElement("div");
+        block.className = "task-block";
+        const isCritical = criticalSet.has(task.nom);
+        if (isCritical) block.classList.add("critical-block");
+        let html = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${task.date_plus_tot}</span> &nbsp; ${task.nom}</td></tr>`;
+        if (task.dependances.length === 0) {
+            html += `<tr><td class="earliest-bold">0</td><td class="split ${isCritical ? 'critical-bold' : ''}">DÉBUT 0</td></tr>`;
+        } else {
+            for (const depId of task.dependances) {
+                const parent = tasks.find(t => t.id === depId);
+                if (parent) {
+                    const isCriticalLink = criticalParents[task.nom] === parent.nom && criticalSet.has(task.nom);
+                    html += `<tr><td class="earliest-bold ${isCriticalLink ? 'critical-bold' : ''}">${parent.date_plus_tot}</td>
+                             <td class="split ${isCriticalLink ? 'critical-bold' : ''}">${parent.nom} ${parent.duree}</td></tr>`;
+                }
+            }
+        }
+        html += `</table>`;
+        block.innerHTML = html;
+        container.appendChild(block);
+    });
+    const endBlock = document.createElement("div");
+    endBlock.className = "task-block";
+    let endHtml = `<table><tr class="top-row"><td colspan="2"><span class="earliest-bold">${maxEnd}</span> FIN</td></tr>`;
+    for (const t of lastTasks) {
+        const isCritical = (t.nom === bestLast);
+        endHtml += `<tr><td class="earliest-bold ${isCritical ? 'critical-bold' : ''}">${t.date_plus_tot}</td>
+                        <td class="split ${isCritical ? 'critical-bold' : ''}">${t.nom} ${t.duree}</td></tr>`;
+    }
+    endHtml += `</table>`;
+    endBlock.innerHTML = endHtml;
+    container.appendChild(endBlock);
+
+    // Graphe animé du chemin critique
+    const graphContainer = document.getElementById("criticalGraph");
+    let orderedPath = [];
+    let node = bestLast;
+    while (node && node !== "DEBUT") { orderedPath.unshift(node); node = criticalParents[node]; }
+    if (orderedPath.length === 0) { graphContainer.innerHTML = '<div style="color:#565f89; text-align:center;">Aucun chemin critique identifié</div>'; return; }
+    let graphHtml = `<div class="path-node start-node"><div class="node-name">DÉBUT</div><div class="node-duration">0</div></div>`;
+    for (let i = 0; i < orderedPath.length; i++) {
+        const t = tasks.find(x => x.nom === orderedPath[i]);
+        if (!t) continue;
+        let arrowDuration = 0;
+        if (i > 0) { const prevTask = tasks.find(x => x.nom === orderedPath[i-1]); if (prevTask) arrowDuration = prevTask.duree; }
+        graphHtml += `<div class="path-arrow"><i class="fas fa-long-arrow-alt-right"></i><span class="duration-label">${arrowDuration}</span></div>`;
+        graphHtml += `<div class="path-node"><div class="node-name">${t.nom}</div><div class="node-duration">${t.date_plus_tot}</div></div>`;
+    }
+    const lastTask = tasks.find(x => x.nom === orderedPath[orderedPath.length-1]);
+    const lastDuration = lastTask ? lastTask.duree : 0;
+    graphHtml += `<div class="path-arrow"><i class="fas fa-long-arrow-alt-right"></i><span class="duration-label">${lastDuration}</span></div>`;
+    graphHtml += `<div class="path-node end-node"><div class="node-name">FIN</div><div class="node-duration">${maxEnd}</div></div>`;
+    graphContainer.innerHTML = graphHtml;
+}
+
+function getProjectEnd(tasks) {
+    const tasksWithSuccessors = new Set();
+    tasks.forEach(t => t.dependances.forEach(d => tasksWithSuccessors.add(d)));
+    const lastTasks = tasks.filter(t => !tasksWithSuccessors.has(t.id));
+    let maxEnd = 0;
+    lastTasks.forEach(t => { const end = t.date_plus_tot + t.duree; if (end > maxEnd) maxEnd = end; });
+    return maxEnd;
+}
+
+async function updateStatsAndChart() {
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
+    const total = tasks.length;
+    const critical = tasks.filter(t => t.marge === 0).length;
+    const duration = getProjectEnd(tasks);
+    document.getElementById("statTotal").innerHTML = total;
+    document.getElementById("statCritical").innerHTML = critical;
+    document.getElementById("statDuration").innerHTML = duration;
+    const ctx = document.getElementById('statsChart').getContext('2d');
+    if (statsChart) statsChart.destroy();
+    const isLight = body.classList.contains('light');
+    // Couleurs : rouge pour critiques, bleu pour non critiques
+    statsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: ['Tâches critiques', 'Tâches non critiques'], datasets: [{ data: [critical, total - critical], backgroundColor: ['#ef4444', '#3b82f6'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: isLight ? '#2e3440' : '#c0caf5' } } } }
+    });
+}
+
+loadTasks();
 </script>
-
 </body>
 </html>
