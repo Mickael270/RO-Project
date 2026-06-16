@@ -74,7 +74,7 @@ function renderTasksTable() {
             <td><button class="delete-btn" onclick="deleteTask(${task.id}, '${task.nom}')"><i class="fas fa-trash"></i> Supprimer</button></td>
           </tr>`;
     }
-    html += `</tbody>`;
+    html += `</tbody></table>`;
     container.innerHTML = html;
     document.querySelectorAll('.editable').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation(); makeEditable(el); }); });
 }
@@ -170,6 +170,7 @@ async function refreshResults() {
         await renderEarliestFlowTable();
         await renderLatestFlowTable();
         await renderCriticalPath();
+        await renderMargesTable();   // <-- NOUVEAU
         await updateStatsAndChart();
         showNotification("Calcul terminé");
     } catch (error) { showNotification("Erreur de calcul", true); }
@@ -377,6 +378,30 @@ async function renderCriticalPath() {
     graphHtml += `<div class="path-arrow"><i class="fas fa-long-arrow-alt-right"></i><span class="duration-label">${lastDuration}</span></div>`;
     graphHtml += `<div class="path-node end-node"><div class="node-name">FIN</div><div class="node-duration">${maxEnd}</div></div>`;
     graphContainer.innerHTML = graphHtml;
+}
+
+// ========== NOUVEAU : TABLEAU DES MARGES ==========
+async function renderMargesTable() {
+    const res = await fetch(API + "/tasks");
+    const tasks = await res.json();
+    const tbody = document.getElementById("margesTableBody");
+    if (!tbody) return;
+    if (tasks.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Aucune tâche</td></tr>';
+        return;
+    }
+    let html = "";
+    for (const task of tasks) {
+        const marge = task.marge !== undefined ? task.marge : "—";
+        const isCritical = marge === 0;
+        html += `<tr style="${isCritical ? 'background-color: rgba(247,118,142,0.1);' : ''}">
+                    <td><strong>${task.nom}</strong></td>
+                    <td>${task.date_plus_tot ?? "—"}</td>
+                    <td>${task.date_plus_tard ?? "—"}</td>
+                    <td class="${isCritical ? 'critical-bold' : ''}">${marge}</td>
+                 </tr>`;
+    }
+    tbody.innerHTML = html;
 }
 
 function getProjectEnd(tasks) {
